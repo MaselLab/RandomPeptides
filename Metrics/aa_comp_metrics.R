@@ -1,3 +1,4 @@
+require(stringr)
 # Amino acid composition-based predictors.
 mean.metric.calculator <- function(aa.sequence, metric){
   # Metrics available:  "disorder" for disoder propensity
