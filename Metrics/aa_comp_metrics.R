@@ -8,6 +8,8 @@ mean.metric.calculator <- function(aa.sequence, metric){
   #                     "Buried-100" for fraction of 100% buried residues with RSA = 0.
   #                     "Buried-95" for fraction of 95% buried residues with RSA < 0.05.
   #                     "fitness" for fitness effects calculated from random peptides in E. coli.
+  #                     "pI" for mean isoelectric point of the AAs in a sequence. NB: this is NOT the pI of a peptide!
+  #                     "R-pKa" for mean pKa amino acid side chains.
   seq.length <- str_length(aa.sequence)
   L.count <- str_count(aa.sequence, pattern = "L")
   V.count <- str_count(aa.sequence, pattern = "V")
@@ -77,6 +79,23 @@ mean.metric.calculator <- function(aa.sequence, metric){
       0.0283*K.count + 0.109*Q.count + 0.241*S.count + 0.0717*E.count + 0.162*P.count
     mean.buried95 <- buried95 / seq.length
     return(mean.buried95)
+  } else if (metric == "pI") {
+    pI <-
+      5.15*C.count + 5.88*W.count + 6.04*I.count + 5.63*Y.count + 5.76*F.count +
+      6.04*L.count + 7.64*H.count + 6.02*V.count + 5.43*N.count + 5.71*M.count +
+      10.76*R.count + 5.60*T.count + 2.98*D.count + 6.06*G.count + 6.11*A.count +
+      9.47*K.count + 5.65*Q.count + 5.70*S.count + 3.08*E.count + 6.30*P.count
+    mean.pI <- pI / seq.length
+    return(mean.pI)
+  } else if (metric == "R-pKa") {
+    R.pKa <-
+      8.3*C.count + 0.0*W.count + 0.0*I.count + 10.1*Y.count + 0.0*F.count +
+      0.0*L.count + 6.0*H.count + 0.0*V.count + 0.0*N.count + 0.0*M.count +
+      12.5*R.count + 0.0*T.count + 3.9*D.count + 0.0*G.count + 0.0*A.count +
+      10.5*K.count + 0.0*Q.count + 0.0*S.count + 4.3*E.count + 0.0*P.count
+    charged.groups <- C.count + Y.count + H.count + R.count + D.count + K.count + E.count
+    mean.R.pKa <- R.pKa / charged.groups
+    return(mean.R.pKa)
   } else if (metric == "fitness") {
     L.freq <- L.count / seq.length
     V.freq <- V.count / seq.length
