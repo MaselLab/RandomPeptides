@@ -1,5 +1,5 @@
 require(stringr)
-# Amino acid composition-based predictors.
+# Amino acid composition-based predictors. NB: Ignores non-standard amino acids.
 mean.metric.calculator <- function(aa.sequence, metric){
   # Metrics available:  "disorder" for disoder propensity
   #                     "stickiness" for interaction interface propensity
@@ -10,7 +10,6 @@ mean.metric.calculator <- function(aa.sequence, metric){
   #                     "fitness" for fitness effects calculated from random peptides in E. coli.
   #                     "pI" for mean isoelectric point of the AAs in a sequence. NB: this is NOT the pI of a peptide!
   #                     "R-pKa" for mean pKa amino acid side chains.
-  seq.length <- str_length(aa.sequence)
   L.count <- str_count(aa.sequence, pattern = "L")
   V.count <- str_count(aa.sequence, pattern = "V")
   M.count <- str_count(aa.sequence, pattern = "M")
@@ -31,6 +30,10 @@ mean.metric.calculator <- function(aa.sequence, metric){
   P.count <- str_count(aa.sequence, pattern = "P")
   G.count <- str_count(aa.sequence, pattern = "G")
   A.count <- str_count(aa.sequence, pattern = "A")
+  seq.length <- L.count + V.count + M.count + F.count + I.count +
+    H.count + K.count + R.count + D.count + E.count +
+    N.count + Q.count + Y.count + W.count + T.count +
+    S.count + C.count + P.count + G.count + A.count
   if (metric == "disorder"){
     disorder.propensity <- 
       0.000*C.count + 0.004*W.count + 0.090*I.count + 0.113*Y.count + 0.117*F.count +
@@ -128,3 +131,4 @@ mean.metric.calculator <- function(aa.sequence, metric){
     print("Error -- unkown or missing metric. Please select a metric from the list provided.")
   }
 }
+

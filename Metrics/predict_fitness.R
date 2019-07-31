@@ -6,7 +6,30 @@ library(stringr)
 # non-standard/unknown amino acid is encountered, set "non.standard = 'stop'".
 # To continue anyway, set "non.standard = 'continue'".
 fitness.calculator <- function(aa.sequence, non.standard = "continue"){
-  seq.length <- str_length(aa.sequence)
+  L.count <- str_count(aa.sequence, pattern = "L")
+  V.count <- str_count(aa.sequence, pattern = "V")
+  M.count <- str_count(aa.sequence, pattern = "M")
+  F.count <- str_count(aa.sequence, pattern = "F")
+  I.count <- str_count(aa.sequence, pattern = "I")
+  H.count <- str_count(aa.sequence, pattern = "H")
+  K.count <- str_count(aa.sequence, pattern = "K")
+  R.count <- str_count(aa.sequence, pattern = "R")
+  D.count <- str_count(aa.sequence, pattern = "D")
+  E.count <- str_count(aa.sequence, pattern = "E")
+  N.count <- str_count(aa.sequence, pattern = "N")
+  Q.count <- str_count(aa.sequence, pattern = "Q")
+  Y.count <- str_count(aa.sequence, pattern = "Y")
+  W.count <- str_count(aa.sequence, pattern = "W")
+  T.count <- str_count(aa.sequence, pattern = "T")
+  S.count <- str_count(aa.sequence, pattern = "S")
+  C.count <- str_count(aa.sequence, pattern = "C")
+  P.count <- str_count(aa.sequence, pattern = "P")
+  G.count <- str_count(aa.sequence, pattern = "G")
+  A.count <- str_count(aa.sequence, pattern = "A")
+  seq.length <- L.count + V.count + M.count + F.count + I.count +
+    H.count + K.count + R.count + D.count + E.count +
+    N.count + Q.count + Y.count + W.count + T.count +
+    S.count + C.count + P.count + G.count + A.count
   L.freq <- str_count(aa.sequence, pattern = "L") / seq.length
   V.freq <- str_count(aa.sequence, pattern = "V") / seq.length
   M.freq <- str_count(aa.sequence, pattern = "M") / seq.length
@@ -27,20 +50,18 @@ fitness.calculator <- function(aa.sequence, non.standard = "continue"){
   P.freq <- str_count(aa.sequence, pattern = "P") / seq.length
   G.freq <- str_count(aa.sequence, pattern = "G") / seq.length
   A.freq <- str_count(aa.sequence, pattern = "A") / seq.length
-  known.aa.freq <- sum(L.freq, V.freq, M.freq, F.freq, I.freq,
-                       H.freq, K.freq, R.freq, D.freq, E.freq,
-                       N.freq, Q.freq, Y.freq, W.freq, T.freq,
-                       S.freq, C.freq, P.freq, G.freq, A.freq)
-  if (isFALSE(all.equal(known.aa.freq, 1))){
-    cat("Non standard amino acids present.")
+  #print(seq.length)
+  #print(str_length(aa.sequence))
+  if (isFALSE(identical(seq.length, str_length(aa.sequence)))){
+    print("Non standard amino acids present.")
     if (non.standard == "stop"){
-      cat("Exiting.")
-      stopifnot(isTRUE(all.equal(known.aa.freq, 1)))
+      print("Exiting.")
+      stopifnot(isTRUE(identical(seq.length, str_length(aa.sequence))))
     } else if (non.standard == "continue") {
-      cat("Ignoring non-standard amino acids.")
+      print("Ignoring non-standard amino acids.")
     } else {
-      cat("Unknown entry for \"non.standard\". Please set equal to \"stop\" or \"continue\".")
-      stopifnot(known.aa.freq == 1)
+      print("Unknown entry for \"non.standard\". Please set equal to \"stop\" or \"continue\".")
+      stopifnot(isTRUE(identical(seq.length, str_length(aa.sequence))))
     }
   }
   fitness.ln <- - 2.24810*L.freq + 3.39860*P.freq - 4.19921*M.freq - 0.06214*W.freq + 2.92215*A.freq - 
@@ -50,3 +71,4 @@ fitness.calculator <- function(aa.sequence, non.standard = "continue"){
   fitness <- exp(fitness.ln)
   return(fitness)
 }
+
