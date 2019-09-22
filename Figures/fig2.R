@@ -4,6 +4,7 @@
 library(lme4)
 library(stringr)
 library(tidyverse)
+library(wCorr)
 
 # Load peptide data.
 peptide.data <- read.table(file = "Data/peptide_data_clusters_7-20-19.tsv", header = T, stringsAsFactors = F)
@@ -84,8 +85,20 @@ for (i in 1:length(by_cluster$Fitness.nb)) {
                   peptide.data[peptide.data$Cluster == i, "Weight.nb"])
 }
 
+# Correlation tests.
+fit.full.lm <- lm(data = by_cluster,
+                  formula = log(Fitness.nb.weighted) ~ fit.full.weighted,
+                  weights = Weight.nb)
+summary(fit.full.lm)
+fit.aa.lm <- lm(data = by_cluster,
+                formula = log(Fitness.nb.weighted) ~ fit.aa.weighted,
+                weights = Weight.nb)
+summary(fit.aa.lm)
+with(by_cluster, weightedCorr(Fitness.nb.weighted, fit.full.weighted, method = "Pearson", weights = Weight.nb))
+with(by_cluster, weightedCorr(Fitness.nb.weighted, fit.aa.weighted, method = "Pearson", weights = Weight.nb))
+
 # Plotting part A.
-todays.date <- "8-26-19"
+todays.date <- "9-16-19"
 png(filename = paste("Scripts/Figures/fitness_pred_full_", todays.date, ".png", sep = ""),
     height = 500, width = 500)
 ggplot(data = by_cluster,

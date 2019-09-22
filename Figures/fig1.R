@@ -110,7 +110,7 @@ for (i in 1:length(by_cluster$Fitness.nb)) {
 }
 
 # Making the plots and exporting.
-todays.date <- "8-7-19"
+todays.date <- "9-16-19"
 png(filename = paste("Scripts/Figures/fitness_isd_", todays.date, ".png", sep = ""),
     height = 500, width = 500)
 ggplot(
@@ -187,12 +187,12 @@ ggplot(
   aes(
     y = log(Fitness.nb.weighted),
     x = WaltzBinary.mode,
-    size = Weight.nb,
+    group = factor(WaltzBinary.mode),
     weight = Weight.nb
   )
 ) +
-  geom_point(alpha = 0.4) +
-  stat_function(fun = function(x)-0.8099 - 0.1367*x, geom = "line", color = "blue", size = 1.5) +
+  geom_boxplot() +
+  #stat_function(fun = function(x)-0.8099 - 0.1367*x, geom = "line", color = "blue", size = 1.5) +
   ylab("Fitness") +
   xlab("Waltz predicted APRs") +
   scale_y_continuous(breaks = log(c(0.05, 0.5, 1, 2, 10)),
