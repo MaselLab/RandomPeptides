@@ -1,5 +1,4 @@
-require(stringr)
-# Amino acid composition-based predictors. NB: Ignores non-standard amino acids.
+# Amino acid composition-based predictors.
 mean.metric.calculator <- function(aa.sequence, metric){
   # Metrics available:  "disorder" for disoder propensity
   #                     "stickiness" for interaction interface propensity
@@ -8,8 +7,10 @@ mean.metric.calculator <- function(aa.sequence, metric){
   #                     "Buried-100" for fraction of 100% buried residues with RSA = 0.
   #                     "Buried-95" for fraction of 95% buried residues with RSA < 0.05.
   #                     "fitness" for fitness effects calculated from random peptides in E. coli.
-  #                     "pI" for mean isoelectric point of the AAs in a sequence. NB: this is NOT the pI of a peptide!
-  #                     "R-pKa" for mean pKa amino acid side chains.
+  #                     "area" for mean amino acid area.
+  #                     "weight" for mean amino acid weight in Da.
+  #                     "pI" for mean isoelectric point.
+  seq.length <- str_length(aa.sequence)
   L.count <- str_count(aa.sequence, pattern = "L")
   V.count <- str_count(aa.sequence, pattern = "V")
   M.count <- str_count(aa.sequence, pattern = "M")
@@ -30,10 +31,6 @@ mean.metric.calculator <- function(aa.sequence, metric){
   P.count <- str_count(aa.sequence, pattern = "P")
   G.count <- str_count(aa.sequence, pattern = "G")
   A.count <- str_count(aa.sequence, pattern = "A")
-  seq.length <- L.count + V.count + M.count + F.count + I.count +
-    H.count + K.count + R.count + D.count + E.count +
-    N.count + Q.count + Y.count + W.count + T.count +
-    S.count + C.count + P.count + G.count + A.count
   if (metric == "disorder"){
     disorder.propensity <- 
       0.000*C.count + 0.004*W.count + 0.090*I.count + 0.113*Y.count + 0.117*F.count +
@@ -82,23 +79,6 @@ mean.metric.calculator <- function(aa.sequence, metric){
       0.0283*K.count + 0.109*Q.count + 0.241*S.count + 0.0717*E.count + 0.162*P.count
     mean.buried95 <- buried95 / seq.length
     return(mean.buried95)
-  } else if (metric == "pI") {
-    pI <-
-      5.15*C.count + 5.88*W.count + 6.04*I.count + 5.63*Y.count + 5.76*F.count +
-      6.04*L.count + 7.64*H.count + 6.02*V.count + 5.43*N.count + 5.71*M.count +
-      10.76*R.count + 5.60*T.count + 2.98*D.count + 6.06*G.count + 6.11*A.count +
-      9.47*K.count + 5.65*Q.count + 5.70*S.count + 3.08*E.count + 6.30*P.count
-    mean.pI <- pI / seq.length
-    return(mean.pI)
-  } else if (metric == "R-pKa") {
-    R.pKa <-
-      8.3*C.count + 0.0*W.count + 0.0*I.count + 10.1*Y.count + 0.0*F.count +
-      0.0*L.count + 6.0*H.count + 0.0*V.count + 0.0*N.count + 0.0*M.count +
-      12.5*R.count + 0.0*T.count + 3.9*D.count + 0.0*G.count + 0.0*A.count +
-      10.5*K.count + 0.0*Q.count + 0.0*S.count + 4.3*E.count + 0.0*P.count
-    charged.groups <- C.count + Y.count + H.count + R.count + D.count + K.count + E.count
-    mean.R.pKa <- R.pKa / charged.groups
-    return(mean.R.pKa)
   } else if (metric == "fitness") {
     L.freq <- L.count / seq.length
     V.freq <- V.count / seq.length
@@ -127,8 +107,31 @@ mean.metric.calculator <- function(aa.sequence, metric){
       3.77098*H.freq + 0.49807*D.freq - 1.43710*E.freq - 4.48956*K.freq - 2.15506*R.freq
     fitness <- exp(fitness.ln)
     return(fitness)
+  } else if (metric == "area") {
+    area.aa <-
+      148*C.count + 264*W.count + 195*I.count + 255*Y.count + 228*F.count +
+      191*L.count + 216*H.count + 165*V.count + 187*N.count + 203*M.count +
+      265*R.count + 163*T.count + 187*D.count + 97*G.count + 121*A.count +
+      230*K.count + 214*Q.count + 143*S.count + 214*E.count + 154*P.count
+    mean.area <- area.aa / seq.length
+    return(mean.area)
+  } else if (metric == "weight") {
+    weight.aa <-
+      121*C.count + 204*W.count + 131*I.count + 181*Y.count + 165*F.count +
+      131*L.count + 155*H.count + 117*V.count + 132*N.count + 149*M.count +
+      174*R.count + 119*T.count + 133*D.count + 75*G.count + 89*A.count +
+      146*K.count + 146*Q.count + 105*S.count + 147*E.count + 115*P.count
+    mean.weight <- weight.aa / seq.length
+    return(mean.weight)
+  } else if (metric == "pI") {
+    pI.aa <-
+      5.15*C.count + 5.88*W.count + 6.04*I.count + 5.63*Y.count + 5.76*F.count +
+      6.04*L.count + 7.64*H.count + 6.02*V.count + 5.43*N.count + 5.71*M.count +
+      10.76*R.count + 5.6*T.count + 2.98*D.count + 6.06*G.count + 6.11*A.count +
+      9.47*K.count + 5.65*Q.count + 5.7*S.count + 3.08*E.count + 6.3*P.count
+    mean.pI <- pI.aa / seq.length
+    return(mean.pI)
   } else {
     print("Error -- unkown or missing metric. Please select a metric from the list provided.")
   }
 }
-
