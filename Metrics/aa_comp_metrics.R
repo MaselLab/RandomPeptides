@@ -10,8 +10,9 @@ mean.metric.calculator <- function(aa.sequence, metric){
   #                     "area" for mean amino acid area.
   #                     "weight" for mean amino acid weight in Da.
   #                     "pI" for mean isoelectric point.
-  #                     "cost-aerobic" from Raiford et al, taken from Basile et al. 2019.
-  #                     "cost-anaerobic" from Raiford et al, taken from Basile et al. 2019.
+  #                     "cost-aerobic" from Raiford et al 2008, taken from Basile et al. 2019 table s7, for S. cerevisiae.
+  #                     "cost-anaerobic" from Raiford et al 2008, taken from Basile et al. 2019 table s7, for S. cerevisiae.
+  #                     "cost-ecoli" from Akashi and Gojobori 2002 table 1, for E. coli. This is aerobic only.
   seq.length <- str_length(aa.sequence)
   L.count <- str_count(aa.sequence, pattern = "L")
   V.count <- str_count(aa.sequence, pattern = "V")
@@ -149,6 +150,14 @@ mean.metric.calculator <- function(aa.sequence, metric){
       12.0*K.count + 3.0*Q.count + 1.0*S.count + 2.0*E.count + 7.0*P.count
     mean.cost.anaerobic <- cost.anaerobic / seq.length
     return(mean.cost.anaerobic)
+  } else if (metric == "cost-ecoli") {
+    cost.ecoli <-
+      24.7*C.count + 74.3*W.count + 32.3*I.count + 50.0*Y.count + 52.0*F.count +
+      27.3*L.count + 38.3*H.count + 23.3*V.count + 14.7*N.count + 34.3*M.count +
+      27.3*R.count + 18.7*T.count + 12.7*D.count + 11.7*G.count + 11.7*A.count +
+      30.3*K.count + 16.3*Q.count + 11.7*S.count + 15.3*E.count + 20.3*P.count
+    mean.cost.ecoli <- cost.ecoli / seq.length
+    return(mean.cost.ecoli)
   } else {
     print("Error -- unkown or missing metric. Please select a metric from the list provided.")
   }
