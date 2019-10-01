@@ -10,6 +10,8 @@ mean.metric.calculator <- function(aa.sequence, metric){
   #                     "area" for mean amino acid area.
   #                     "weight" for mean amino acid weight in Da.
   #                     "pI" for mean isoelectric point.
+  #                     "cost-aerobic" from Raiford et al, taken from Basile et al. 2019.
+  #                     "cost-anaerobic" from Raiford et al, taken from Basile et al. 2019.
   seq.length <- str_length(aa.sequence)
   L.count <- str_count(aa.sequence, pattern = "L")
   V.count <- str_count(aa.sequence, pattern = "V")
@@ -131,6 +133,22 @@ mean.metric.calculator <- function(aa.sequence, metric){
       9.47*K.count + 5.65*Q.count + 5.7*S.count + 3.08*E.count + 6.3*P.count
     mean.pI <- pI.aa / seq.length
     return(mean.pI)
+  } else if (metric == "cost-aerobic") {
+    cost.aerobic <-
+      26.5*C.count + 75.5*W.count + 38.0*I.count + 59.0*Y.count + 61.0*F.count +
+      37.0*L.count + 29.0*H.count + 29.0*V.count + 18.5*N.count + 36.5*M.count +
+      20.5*R.count + 21.5*T.count + 15.5*D.count + 14.5*G.count + 14.5*A.count +
+      36.0*K.count + 10.5*Q.count + 14.5*S.count + 9.5*E.count + 14.5*P.count
+    mean.cost.aerobic <- cost.aerobic / seq.length
+    return(mean.cost.aerobic)
+  } else if (metric == "cost-anaerobic") {
+    cost.anaerobic <-
+      13.0*C.count + 14.0*W.count + 14.0*I.count + 8.0*Y.count + 10.0*F.count +
+      4.0*L.count + 5.0*H.count + 4.0*V.count + 6.0*N.count + 24.0*M.count +
+      13.0*R.count + 9.0*T.count + 3.0*D.count + 1.0*G.count + 2.0*A.count +
+      12.0*K.count + 3.0*Q.count + 1.0*S.count + 2.0*E.count + 7.0*P.count
+    mean.cost.anaerobic <- cost.anaerobic / seq.length
+    return(mean.cost.anaerobic)
   } else {
     print("Error -- unkown or missing metric. Please select a metric from the list provided.")
   }
