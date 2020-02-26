@@ -7,7 +7,7 @@ library(tidyverse)
 library(wCorr)
 
 # Load peptide data.
-peptide.data <- read.table(file = "Data/peptide_data_clusters_7-20-19.tsv", header = T, stringsAsFactors = F)
+peptide.data <- read.table(file = "Data/peptide_data_clusters_2-14-20.tsv", header = T, stringsAsFactors = F)
 
 # Full model.
 fitness.nb.full.lm <- lmer(data = peptide.data,
@@ -18,9 +18,18 @@ fitness.nb.full.lm <- lmer(data = peptide.data,
                              His + Asp + Glu + Lys + Arg +
                              Clustering.Six +
                              WaltzBinary +
+                             charge.pos +
+                             charge.neg +
                              (1|Cluster) + 0,
                            weights = Weight.nb)
-summary(fitness.nb.full.lm)
+fitness.nb.full.summary <- summary(fitness.nb.full.lm)
+
+peptide.data$fit.full <- 
+  predict(
+    fitness.nb.full.lm,
+    newdata = peptide.data,
+    re.form = NA
+  )
 
 # Predicted estimated fitness with predicted fitness from the full model.
 fitness.pred.fit.cluster.lm <- lmer(
@@ -28,7 +37,8 @@ fitness.pred.fit.cluster.lm <- lmer(
   formula = log(Fitness.nb) ~ predict(fitness.nb.full.lm, newdata = peptide.data, re.form = NA) + (1|Cluster),
   weights = Weight.nb
 )
-fitness.pred.fit.cluster.lm
+pred.full.summary <- summary(fitness.pred.fit.cluster.lm)
+pred.full.summary$coefficients
 
 # Amino acid composition only.
 fitness.nb.aa.lm <- lmer(data = peptide.data,
@@ -39,7 +49,14 @@ fitness.nb.aa.lm <- lmer(data = peptide.data,
                              His + Asp + Glu + Lys + Arg +
                              (1|Cluster) + 0,
                            weights = Weight.nb)
-summary(fitness.nb.aa.lm)
+fitness.nb.aa.summary <- summary(fitness.nb.aa.lm)
+
+peptide.data$fit.aa <- 
+  predict(
+    fitness.nb.aa.lm,
+    newdata = peptide.data,
+    re.form = NA
+  )
 
 # Predicted estimated fitness with predicted fitness from the aa comp only model.
 fitness.pred.aa.fit.cluster.lm <- lmer(
@@ -47,68 +64,80 @@ fitness.pred.aa.fit.cluster.lm <- lmer(
   formula = log(Fitness.nb) ~ predict(fitness.nb.aa.lm, newdata = peptide.data, re.form = NA) + (1|Cluster),
   weights = Weight.nb
 )
-fitness.pred.aa.fit.cluster.lm
+pred.aa.summary <- summary(fitness.pred.aa.fit.cluster.lm)
+pred.aa.summary$coefficients
 
 # Combining the data by cluster for plotting.
 by_cluster <-
   peptide.data %>% 
   group_by(Cluster) %>%
-  summarise(Weight.nb = sum(Weight.nb), ISD = mean(ISD),
-            Fitness.nb = mean(Fitness.nb),
-            Leu = mean(Leu), Phe = mean(Phe), Met = mean(Met), Val = mean(Val), Ile = mean(Ile),
-            Lys = mean(Lys), His = mean(His), Arg = mean(Arg), Glu = mean(Glu), Asp = mean(Asp),
-            Gln = mean(Gln), Asn = mean(Asn), Gly = mean(Gly), Ala = mean(Ala), Pro = mean(Pro),
-            Ser = mean(Ser), Trp = mean(Trp), Tyr = mean(Tyr), Thr = mean(Thr), Cys = mean(Cys),
-            Clustering.Six = mean(Clustering.Six), WaltzBinary = mean(WaltzBinary), WaltzAAsInAPRs = mean(WaltzAAsInAPRs),
-            Waltz.delta = mean(Waltz.delta), TangoBinary = mean(TangoBinary), TangoAAsInAPRs = mean(TangoAAsInAPRs),
-            Tango.delta = mean(Tango.delta), Cys.squared = mean(Cys.squared), CamSol.avg = mean(CamSol.avg),
-            AnchorAvg = mean(AnchorAvg), ISD.delta = mean(ISD.delta), mean.run.norm = mean(mean.run.norm),
-            max.run.length = mean(max.run.length), Weight.nb = sum(Weight.nb))
-by_cluster$Fitness.nb.weighted <- rep(NA, length(by_cluster$Fitness.nb))
-for (i in 1:length(by_cluster$Fitness.nb)) {
-  by_cluster[by_cluster$Cluster == i, "Fitness.nb.weighted"] <- 
-    weighted.mean(peptide.data[peptide.data$Cluster == i, "Fitness.nb"],
-                  peptide.data[peptide.data$Cluster == i, "Weight.nb"])
-}
-by_cluster$fit.full.weighted <- rep(NA, length(by_cluster$CamSol.avg))
-by_cluster$fit.aa.weighted <- rep(NA, length(by_cluster$WaltzBinary))
-for (i in 1:length(by_cluster$Fitness.nb)) {
-  by_cluster[by_cluster$Cluster == i, "fit.full.weighted"] <- 
-    weighted.mean(predict(fitness.nb.full.lm,
-                          newdata = peptide.data[peptide.data$Cluster == i, ],
-                          re.form = NA),
-                  peptide.data[peptide.data$Cluster == i, "Weight.nb"])
-  by_cluster[by_cluster$Cluster == i, "fit.aa.weighted"] <- 
-    weighted.mean(predict(fitness.nb.aa.lm,
-                          newdata = peptide.data[peptide.data$Cluster == i, ],
-                          re.form = NA),
-                  peptide.data[peptide.data$Cluster == i, "Weight.nb"])
-}
+  summarise(Weight.nb.sum = sum(Weight.nb), ISD = wtd.mean(ISD, weights = Weight.nb),
+            ISD.iupred2 = wtd.mean(ISD.iupred2, weights = Weight.nb), Fitness.nb = wtd.mean(Fitness.nb, weights = Weight.nb),
+            Leu = wtd.mean(Leu, weights = Weight.nb), Phe = wtd.mean(Phe, weights = Weight.nb),
+            Met = wtd.mean(Met, weights = Weight.nb), Val = wtd.mean(Val, weights = Weight.nb),
+            Ile = wtd.mean(Ile, weights = Weight.nb), Lys = wtd.mean(Lys, weights = Weight.nb),
+            His = wtd.mean(His, weights = Weight.nb), Arg = wtd.mean(Arg, weights = Weight.nb),
+            Glu = wtd.mean(Glu, weights = Weight.nb), Asp = wtd.mean(Asp, weights = Weight.nb),
+            Gln = wtd.mean(Gln, weights = Weight.nb), Asn = wtd.mean(Asn, weights = Weight.nb),
+            Gly = wtd.mean(Gly, weights = Weight.nb), Ala = wtd.mean(Ala, weights = Weight.nb),
+            Pro = wtd.mean(Pro, weights = Weight.nb), Ser = wtd.mean(Ser, weights = Weight.nb),
+            Trp = wtd.mean(Trp, weights = Weight.nb), Tyr = wtd.mean(Tyr, weights = Weight.nb),
+            Thr = wtd.mean(Thr, weights = Weight.nb), Cys = wtd.mean(Cys, weights = Weight.nb),
+            Clustering.Six = wtd.mean(Clustering.Six, weights = Weight.nb),
+            WaltzBinary = wtd.mean(WaltzBinary, weights = Weight.nb),
+            CamSol.avg = wtd.mean(CamSol.avg, weights = Weight.nb),
+            charge.pos = wtd.mean(charge.pos, weights = Weight.nb), charge.neg = wtd.mean(charge.neg),
+            net.charge = wtd.mean(net.charge, weights = Weight.nb),
+            fit.full = wtd.mean(fit.full, weights = Weight.nb),
+            fit.aa = wtd.mean(fit.aa, weights = Weight.nb)
+  )
+# by_cluster$Fitness.nb.weighted <- rep(NA, length(by_cluster$Fitness.nb))
+# for (i in 1:length(by_cluster$Fitness.nb)) {
+#   by_cluster[by_cluster$Cluster == i, "Fitness.nb.weighted"] <- 
+#     weighted.mean(peptide.data[peptide.data$Cluster == i, "Fitness.nb"],
+#                   peptide.data[peptide.data$Cluster == i, "Weight.nb"])
+# }
+# by_cluster$fit.full.weighted <- rep(NA, length(by_cluster$CamSol.avg))
+# by_cluster$fit.aa.weighted <- rep(NA, length(by_cluster$WaltzBinary))
+# for (i in 1:length(by_cluster$Fitness.nb)) {
+#   by_cluster[by_cluster$Cluster == i, "fit.full.weighted"] <- 
+#     weighted.mean(predict(fitness.nb.full.lm,
+#                           newdata = peptide.data[peptide.data$Cluster == i, ],
+#                           re.form = NA),
+#                   peptide.data[peptide.data$Cluster == i, "Weight.nb"])
+#   by_cluster[by_cluster$Cluster == i, "fit.aa.weighted"] <- 
+#     weighted.mean(predict(fitness.nb.aa.lm,
+#                           newdata = peptide.data[peptide.data$Cluster == i, ],
+#                           re.form = NA),
+#                   peptide.data[peptide.data$Cluster == i, "Weight.nb"])
+# }
 
 # Correlation tests.
 fit.full.lm <- lm(data = by_cluster,
-                  formula = log(Fitness.nb.weighted) ~ fit.full.weighted,
-                  weights = Weight.nb)
+                  formula = log(Fitness.nb) ~ fit.full,
+                  weights = Weight.nb.sum)
 summary(fit.full.lm)
 fit.aa.lm <- lm(data = by_cluster,
-                formula = log(Fitness.nb.weighted) ~ fit.aa.weighted,
-                weights = Weight.nb)
+                formula = log(Fitness.nb) ~ fit.aa,
+                weights = Weight.nb.sum)
 summary(fit.aa.lm)
-with(by_cluster, weightedCorr(Fitness.nb.weighted, fit.full.weighted, method = "Pearson", weights = Weight.nb))
-with(by_cluster, weightedCorr(Fitness.nb.weighted, fit.aa.weighted, method = "Pearson", weights = Weight.nb))
+with(by_cluster, weightedCorr(log(Fitness.nb), fit.full, method = "Pearson", weights = Weight.nb.sum))
+with(by_cluster, weightedCorr(log(Fitness.nb), fit.aa, method = "Pearson", weights = Weight.nb.sum))
 
 # Plotting part A.
-todays.date <- "9-16-19"
+todays.date <- "2-25-20"
+cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 png(filename = paste("Scripts/Figures/fitness_pred_full_", todays.date, ".png", sep = ""),
     height = 500, width = 500)
 ggplot(data = by_cluster,
-       aes(x = fit.full.weighted,
-           y = log(Fitness.nb.weighted),
-           size = Weight.nb,
-           weight = Weight.nb)
+       aes(x = fit.full,
+           y = log(Fitness.nb),
+           size = Weight.nb.sum,
+           weight = Weight.nb.sum)
 ) +
   geom_point(alpha = 0.4) +
-  stat_function(fun = function(x)-0.0008267 + 0.9991354*x, geom = "line", color = "blue", size = 1.5) +
+  stat_function(fun = function(x)pred.full.summary$coefficients[1,1] + pred.full.summary$coefficients[2,1]*x,
+                geom = "line", color = cbbPalette[6], size = 1.5) +
   ylab("Fitness") +
   xlab("Predicted fitness") +
   scale_y_continuous(breaks = log(c(0.05, 0.5, 1, 2, 10)),
@@ -123,13 +152,14 @@ dev.off()
 png(filename = paste("Scripts/Figures/fitness_pred_aacomp_", todays.date, ".png", sep = ""),
     height = 500, width = 500)
 ggplot(data = by_cluster,
-       aes(x = fit.aa.weighted,
-           y = log(Fitness.nb.weighted),
-           size = Weight.nb,
-           weight = Weight.nb)
+       aes(x = fit.aa,
+           y = log(Fitness.nb),
+           size = Weight.nb.sum,
+           weight = Weight.nb.sum)
 ) +
   geom_point(alpha = 0.4) +
-  stat_function(fun = function(x)-0.000727 + 0.999252*x, geom = "line", color = "blue", size = 1.5) +
+  stat_function(fun = function(x)pred.aa.summary$coefficients[1,1] + pred.aa.summary$coefficients[2,1]*x,
+                geom = "line", color = cbbPalette[6], size = 1.5) +
   ylab("Fitness") +
   xlab("Predicted fitness") +
   scale_y_continuous(breaks = log(c(0.05, 0.5, 1, 2, 10)),
