@@ -9,7 +9,7 @@ library(Hmisc)
 peptide.data <- read.table(file = "Data/peptide_data_clusters_2-14-20.tsv", header = T, stringsAsFactors = F)
 
 # Date of file generation.
-today.date <- "3-4-2020"
+today.date <- "3-9-2020"
 
 # Calculating the marginal effects.
 # Amino acid frequency only model.
@@ -25,15 +25,19 @@ peptide.mixed.nb.log.aaonly.lm <-
       0,
     weights = Weight.nb
   )
-summary(peptide.mixed.nb.log.aaonly.lm)
+log.aaonly.summary <- summary(peptide.mixed.nb.log.aaonly.lm)
+log.aaonly.summary
 drop1(peptide.mixed.nb.log.aaonly.lm, test = "Chisq")
 
 # Estimating the marginal effects.
 custom.margins.exp.var <- function(weight.vector, linear.model){
   # First, we calculate the expected value (the mean). Note that beta coefficients are unbiased estimators.
   model.summary <- summary(linear.model)
+  #print(model.summary)
   model.coefs <- model.summary$coefficients[,1]
+  #print(model.coefs)
   mean.margin <- sum(weight.vector * model.coefs)
+  #print(mean.margin)
   
   # Next, we calculate the variance.
   weight.matrix <- outer(weight.vector, weight.vector)
@@ -76,11 +80,29 @@ increment.position.freq <- function(counts.vector){
   return(vector.matrix)
 }
 
+# Function for ordering a data frame with column "AminoAcid" by the order of amino acids
+# in a linear model.
+aa.sort.lm <- function(linear.model, aa.df, aa.col = "AminoAcid") {
+  lm.summary <- summary(linear.model)
+  #print(lm.summary)
+  aa.order <- names(lm.summary$coefficients[,1])
+  #print(aa.order)
+  aa.unordered <- as.list(aa.df[, aa.col])[[1]]
+  #print(aa.unordered)
+  new.order <- match(aa.order, aa.unordered)
+  #print(new.order)
+  aa.df.ordered <- aa.df[new.order,]
+  return(aa.df.ordered)
+}
+
 # Writing a third function to get all necessary combinations of the weight vector, and use those to
 # call the above function, all while keeping the coefficient names with the correct output values.
 # Should return everything as a data frame with coefficient name, mean marginal effect, and variance
 # as its three columns.
-custom.contrasts <- function(weight.vector, linear.model){
+# Note: weight.df needs to have a column to sort the amino acids by!
+custom.contrasts <- function(weight.df, linear.model, aa.col = "AminoAcid", weight.col = "Count"){
+  weight.df.ordered <- aa.sort.lm(linear.model = linear.model, aa.df = weight.df, aa.col = aa.col)
+  weight.vector <- as.list(weight.df.ordered[, weight.col])[[1]]
   coef.count <- length(weight.vector)
   model.summary <- summary(linear.model)
   names.vector <- names(model.summary$coefficients[,1])
@@ -140,24 +162,40 @@ by_cluster <-
 
 # Calculating frequency from cluster.
 aa.freqs.wmax <-
-  c("Lys" = sum(by_cluster$Lys), "Arg" = sum(by_cluster$Arg),
-    "Asp" = sum(by_cluster$Asp), "Glu" = sum(by_cluster$Glu),
-    "Gln" = sum(by_cluster$Gln), "Ser" = sum(by_cluster$Ser),
-    "Asn" = sum(by_cluster$Asn), "Thr" = sum(by_cluster$Thr),
-    "Pro" = sum(by_cluster$Pro), "Tyr" = sum(by_cluster$Tyr),
-    "His" = sum(by_cluster$His), "Cys" = sum(by_cluster$Cys),
-    "Gly" = sum(by_cluster$Gly), "Ala" = sum(by_cluster$Ala),
-    "Trp" = sum(by_cluster$Trp), "Val" = sum(by_cluster$Val),
-    "Leu" = sum(by_cluster$Leu), "Met" = sum(by_cluster$Met),
-    "Phe" = sum(by_cluster$Phe), "Ile" = sum(by_cluster$Ile))
+  tibble(
+    "AminoAcid" = c("Lys", "Arg",
+                    "Asp", "Glu",
+                    "Gln", "Ser",
+                    "Asn", "Thr",
+                    "Pro", "Tyr",
+                    "His", "Cys",
+                    "Gly", "Ala",
+                    "Trp", "Val",
+                    "Leu", "Met",
+                    "Phe", "Ile"),
+    "Count" = c("Lys" = sum(by_cluster$Lys), "Arg" = sum(by_cluster$Arg),
+                "Asp" = sum(by_cluster$Asp), "Glu" = sum(by_cluster$Glu),
+                "Gln" = sum(by_cluster$Gln), "Ser" = sum(by_cluster$Ser),
+                "Asn" = sum(by_cluster$Asn), "Thr" = sum(by_cluster$Thr),
+                "Pro" = sum(by_cluster$Pro), "Tyr" = sum(by_cluster$Tyr),
+                "His" = sum(by_cluster$His), "Cys" = sum(by_cluster$Cys),
+                "Gly" = sum(by_cluster$Gly), "Ala" = sum(by_cluster$Ala),
+                "Trp" = sum(by_cluster$Trp), "Val" = sum(by_cluster$Val),
+                "Leu" = sum(by_cluster$Leu), "Met" = sum(by_cluster$Met),
+                "Phe" = sum(by_cluster$Phe), "Ile" = sum(by_cluster$Ile))
+  )
+aa.freqs.wmax
+
+# The order of the freq data and the linear model need to be the same.
+match(names(log.aaonly.summary$coefficients[,1]), aa.freqs.wmax$AminoAcid)
+aa.freqs.wmax[match(names(log.aaonly.summary$coefficients[,1]), aa.freqs.wmax$AminoAcid),]
+aa.freqs.wmax[match(names(log.aaonly.summary$coefficients[,1]), aa.freqs.wmax[,"AminoAcid"]),]
+aa.freqs.ordered <- aa.sort.lm(peptide.mixed.nb.log.aaonly.lm, aa.freqs.wmax)
+aa.freqs.ordered
+as.list(aa.freqs.ordered[,"Count"])[[1]]
 
 marginals.clusters.log.nb.wmax <- custom.contrasts(aa.freqs.wmax, peptide.mixed.nb.log.aaonly.lm)
 marginals.clusters.log.nb.wmax
-
-# Renaming the columns to something more sensible.
-names(marginals.clusters.log.nb.wmax)
-names(marginals.clusters.log.nb.wmax)[1:2] <- c("AminoAcid", "MarginalEffect")
-names(marginals.clusters.log.nb.wmax)
 
 # Exporting marginal effects as a table.
 write_tsv(marginals.clusters.log.nb.wmax, path = "Data/supplemental_table_2.tsv")
@@ -165,6 +203,21 @@ write_tsv(marginals.clusters.log.nb.wmax, path = "Data/supplemental_table_2.tsv"
 # Importing data for James et al.'s phylostratigraphy slopes.
 slopes.aa.props <- read_tsv(file = "Data/phylostratigraphy_aasummary_3-4-2020.tsv")
 slopes.aa.props
+
+# Renaming the columns of the marginals data frame to match those from James et al.'s data frame.
+names(marginals.clusters.log.nb.wmax)
+colname.marginals <- "MarginalLogNBWMax"
+colname.stderr <- "MarginalLogNBWMaxErr"
+names(marginals.clusters.log.nb.wmax) <- c("AA", colname.marginals, colname.stderr)
+names(marginals.clusters.log.nb.wmax)
+marginals.clusters.log.nb.wmax
+
+# Deleting any columns in the James et al. data frame with these names.
+slopes.aa.props$MarginalLogNBWMax <- NULL
+slopes.aa.props$MarginalLogNBWMaxErr <- NULL
+
+# Merging the James et al. data frame and the marginal effects data frames.
+slopes.aa.props <- merge(slopes.aa.props, marginals.clusters.log.nb.wmax, by = "AA")
 
 # Checking weighted correlations.
 # First, making a function for a weighted Pearson's correlation where both X and Y have their own
@@ -263,13 +316,13 @@ ggplot(data = slopes.aa.props, aes(x = MarginalLogNBWMax, y = PlantNonTransmembr
                      xmax=MarginalLogNBWMax + MarginalLogNBWMaxErr), size = 1) +
   ylab("\U0394% points change per BY") +
   xlab("Multiplier effect on genotype freq / cycle\n(fold change units)") +
-  scale_x_continuous(breaks = c(-0.1, 0, 0.1),
-                     labels = round(2^c(-0.1, 0, 0.1), digits = 2)) +
+  scale_x_continuous(breaks = c(-0.2, -0.1, 0, 0.1),
+                     labels = round(2^c(-0.2, -0.1, 0, 0.1), digits = 2)) +
   scale_y_continuous(breaks = c(1e-5, 0, -1e-5, -2e-5, -3e-5),
                      limits = c(-3e-5, 1.8e-5),
                      labels = c("1%", "0%", "-1%", "-2%", "-3%")) +
   geom_text(aes(label = OneLetter), hjust = -0.2, vjust = -0.4, size = 9, color = "grey30") +
-  annotate("text", label = plant.cor.label, x = -0.1, y = -1.5e-5, size = 10,
+  annotate("text", label = plant.cor.label, x = -0.12, y = -1.5e-5, size = 10,
            parse = F) +
   theme_bw(base_size = 28) +
   theme(legend.position = "none")
@@ -287,13 +340,13 @@ ggplot(data = slopes.aa.props, aes(x = MarginalLogNBWMax, y = AnimalNonTransmemb
                      xmax=MarginalLogNBWMax + MarginalLogNBWMaxErr), size = 1) +
   ylab("\U0394% points change per BY") +
   xlab("Multiplier effect on genotype freq / cycle\n(fold change units)") +
-  scale_x_continuous(breaks = c(-0.1, 0, 0.1),
-                     labels = round(2^c(-0.1, 0, 0.1), digits = 2)) +
+  scale_x_continuous(breaks = c(-0.2, -0.1, 0, 0.1),
+                     labels = round(2^c(-0.2, -0.1, 0, 0.1), digits = 2)) +
   scale_y_continuous(breaks = c(1e-5, 0, -1e-5, -2e-5, -3e-5),
                      limits = c(-3e-5, 1.8e-5),
                      labels = c("1%", "0%", "-1%", "-2%", "-3%")) +
   geom_text(aes(label = OneLetter), hjust = -0.2, vjust = -0.4, size = 9, color = "grey30") +
-  annotate("text", label = animal.cor.label, x = -0.08, y = -1.5e-5, size = 10,
+  annotate("text", label = animal.cor.label, x = -0.1, y = -1.5e-5, size = 10,
            parse = F) +
   theme_bw(base_size = 28) +
   theme(legend.position = "none")
@@ -311,13 +364,13 @@ ggplot(data = slopes.aa.props, aes(x = MarginalLogNBWMax, y = AllNonTransmembran
                      xmax=MarginalLogNBWMax + MarginalLogNBWMaxErr), size = 1) +
   ylab("\U0394% points change per BY") +
   xlab("Multiplier effect on genotype freq / cycle\n(fold change units)") +
-  scale_x_continuous(breaks = c(-0.1, 0, 0.1),
-                     labels = round(2^c(-0.1, 0, 0.1), digits = 2)) +
+  scale_x_continuous(breaks = c(-0.2, -0.1, 0, 0.1),
+                     labels = round(2^c(-0.2, -0.1, 0, 0.1), digits = 2)) +
   scale_y_continuous(breaks = c(1e-5, 0, -1e-5, -2e-5, -3e-5),
                      limits = c(-3e-5, 1.8e-5),
                      labels = c("1%", "0%", "-1%", "-2%", "-3%")) +
   geom_text(aes(label = OneLetter), hjust = -0.2, vjust = -0.4, size = 9, color = "grey30") +
-  annotate("text", label = ancient.cor.label, x = -0.08, y = -1.5e-5, size = 10,
+  annotate("text", label = ancient.cor.label, x = -0.1, y = -1.5e-5, size = 10,
            parse = F) +
   theme_bw(base_size = 28) +
   theme(legend.position = "none")
