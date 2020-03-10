@@ -314,8 +314,8 @@ ggplot(data = slopes.aa.props, aes(x = MarginalLogNBWMax, y = PlantNonTransmembr
                 size = 1) +
   geom_errorbarh(aes(xmin=MarginalLogNBWMax - MarginalLogNBWMaxErr,
                      xmax=MarginalLogNBWMax + MarginalLogNBWMaxErr), size = 1) +
-  ylab("\U0394% points change per BY") +
-  xlab("Multiplier effect on genotype freq / cycle\n(fold change units)") +
+  ylab("\U0394% point change per BY") +
+  xlab("Effect on genotype freq / cycle\n(fold change)") +
   scale_x_continuous(breaks = c(-0.2, -0.1, 0, 0.1),
                      labels = round(2^c(-0.2, -0.1, 0, 0.1), digits = 2)) +
   scale_y_continuous(breaks = c(1e-5, 0, -1e-5, -2e-5, -3e-5),
@@ -338,8 +338,8 @@ ggplot(data = slopes.aa.props, aes(x = MarginalLogNBWMax, y = AnimalNonTransmemb
                 size = 1) +
   geom_errorbarh(aes(xmin=MarginalLogNBWMax - MarginalLogNBWMaxErr,
                      xmax=MarginalLogNBWMax + MarginalLogNBWMaxErr), size = 1) +
-  ylab("\U0394% points change per BY") +
-  xlab("Multiplier effect on genotype freq / cycle\n(fold change units)") +
+  ylab("\U0394% point change per BY") +
+  xlab("Effect on genotype freq / cycle\n(fold change)") +
   scale_x_continuous(breaks = c(-0.2, -0.1, 0, 0.1),
                      labels = round(2^c(-0.2, -0.1, 0, 0.1), digits = 2)) +
   scale_y_continuous(breaks = c(1e-5, 0, -1e-5, -2e-5, -3e-5),
@@ -362,8 +362,8 @@ ggplot(data = slopes.aa.props, aes(x = MarginalLogNBWMax, y = AllNonTransmembran
                 size = 1) +
   geom_errorbarh(aes(xmin=MarginalLogNBWMax - MarginalLogNBWMaxErr,
                      xmax=MarginalLogNBWMax + MarginalLogNBWMaxErr), size = 1) +
-  ylab("\U0394% points change per BY") +
-  xlab("Multiplier effect on genotype freq / cycle\n(fold change units)") +
+  ylab("\U0394% point change per BY") +
+  xlab("Effect on genotype freq / cycle\n(fold change)") +
   scale_x_continuous(breaks = c(-0.2, -0.1, 0, 0.1),
                      labels = round(2^c(-0.2, -0.1, 0, 0.1), digits = 2)) +
   scale_y_continuous(breaks = c(1e-5, 0, -1e-5, -2e-5, -3e-5),

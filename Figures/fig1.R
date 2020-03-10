@@ -53,11 +53,51 @@ drop1(waltz.lme, test = "Chisq")
 charge.lme <-
   lmer(
     data = peptide.data,
-    formula = log(Fitness.nb) ~ charge.pos + charge.neg + (1|Cluster),
+    formula = log(Fitness.nb) ~ net.charge + (1|Cluster),
     weights = Weight.nb
   )
 drop1(charge.lme, test = "Chisq")
 charge.summary <- summary(charge.lme)
+
+# Checking a two-parameter net charge model.
+charge.2param.lme <-
+  lmer(
+    data = peptide.data,
+    formula = log(Fitness.nb) ~ charge.neg + charge.pos + (1|Cluster),
+    weights = Weight.nb
+  )
+drop1(charge.2param.lme, test = "Chisq")
+charge.2param.summary <- summary(charge.lme)
+AIC(charge.lme)
+AIC(charge.2param.lme)
+# Single parameter model has lower AIC, so we go with the simpler model.
+
+# Calculating R-squared from predicted fitness vs estimated fitness from each model.
+peptide.data$ISD.fit <- predict(isd.lme,
+                                newdata = peptide.data,
+                                type = "response",
+                                random.only = F,
+                                re.form = NA)
+peptide.data$Clustering.fit <- predict(clustering.lme,
+                                       newdata = peptide.data,
+                                       type = "response",
+                                       random.only = F,
+                                       re.form = NA)
+peptide.data$camsol.fit <- predict(camsol.lme,
+                                   newdata = peptide.data,
+                                   type = "response",
+                                   random.only = F,
+                                   re.form = NA)
+peptide.data$Waltz.fit <- predict(waltz.lme,
+                                  newdata = peptide.data,
+                                  type = "response",
+                                  random.only = F,
+                                  re.form = NA)
+peptide.data$charge.fit <- predict(charge.lme,
+                                   newdata = peptide.data,
+                                   type = "response",
+                                   random.only = F,
+                                   re.form = NA)
 
 # Combining the data by cluster for plotting.
 by_cluster <-
@@ -79,7 +119,10 @@ by_cluster <-
             WaltzBinary = wtd.mean(WaltzBinary, weights = Weight.nb),
             CamSol.avg = wtd.mean(CamSol.avg, weights = Weight.nb),
             charge.pos = wtd.mean(charge.pos, weights = Weight.nb), charge.neg = wtd.mean(charge.neg),
-            net.charge = wtd.mean(net.charge, weights = Weight.nb)
+            net.charge = wtd.mean(net.charge, weights = Weight.nb),
+            ISD.fit = wtd.mean(ISD.fit, weights = Weight.nb), Clustering.fit = wtd.mean(Clustering.fit, weights = Weight.nb),
+            camsol.fit = wtd.mean(camsol.fit, weights = Weight.nb), Waltz.fit = wtd.mean(Waltz.fit, weights = Weight.nb),
+            charge.fit = wtd.mean(charge.fit, weights = Weight.nb)
   )
 # by_cluster$Fitness.nb.weighted <- rep(NA, length(by_cluster$Fitness.nb))
 # for (i in 1:length(by_cluster$Fitness.nb)) {
@@ -129,8 +172,40 @@ by_cluster <-
 #     getmode(peptide.data[peptide.data$Cluster == i, "WaltzBinary"])
 # }
 
+# And now for the R-squared.
+isd.fit.lm <- lm(
+  data = by_cluster,
+  formula = log(Fitness.nb) ~ ISD.fit,
+  weights = Weight.nb.sum
+)
+summary(isd.fit.lm)
+clustering.fit.lm <- lm(
+  data = by_cluster,
+  formula = log(Fitness.nb) ~ Clustering.fit,
+  weights = Weight.nb.sum
+)
+summary(clustering.fit.lm)
+camsol.fit.lm <- lm(
+  data = by_cluster,
+  formula = log(Fitness.nb) ~ camsol.fit,
+  weights = Weight.nb.sum
+)
+summary(camsol.fit.lm)
+waltz.fit.lm <- lm(
+  data = by_cluster,
+  formula = log(Fitness.nb) ~ Waltz.fit,
+  weights = Weight.nb.sum
+)
+summary(waltz.fit.lm)
+charge.fit.lm <- lm(
+  data = by_cluster,
+  formula = log(Fitness.nb) ~ charge.fit,
+  weights = Weight.nb.sum
+)
+summary(charge.fit.lm)
+
 # Making the plots and exporting.
-todays.date <- "2-24-20"
+todays.date <- "3-9-2020"
 cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 png(filename = paste("Scripts/Figures/fitness_isd_", todays.date, ".png", sep = ""),
     height = 500, width = 500)
@@ -258,9 +333,9 @@ ggplot(
                      labels = c(0.05, 0.5, 1, 2),
                      limits = log(c(0.04, 6))) +
   stat_function(fun = function(x)charge.summary$coefficients[1,1] + charge.summary$coefficients[2,1]*x,
-                geom = "line", color = cbbPalette[2], size = 1.5, xlim = c(0,11)) +
-  stat_function(fun = function(x)charge.summary$coefficients[1,1] + charge.summary$coefficients[3,1]*x,
-                geom = "line", color = cbbPalette[6], size = 1.5, xlim = c(-6, 0)) +
+                geom = "line", color = cbbPalette[6], size = 1.5) +
+  #stat_function(fun = function(x)charge.summary$coefficients[1,1] + charge.summary$coefficients[3,1]*x,
+  #              geom = "line", color = cbbPalette[6], size = 1.5, xlim = c(-6, 0)) +
   theme_bw(base_size = 28) +
   theme(legend.position = "none")
 dev.off()
