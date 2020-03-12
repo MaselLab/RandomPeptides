@@ -9,7 +9,7 @@ library(Hmisc)
 peptide.data <- read.table(file = "Data/peptide_data_clusters_2-14-20.tsv", header = T, stringsAsFactors = F)
 
 # Date of file generation.
-today.date <- "3-9-2020"
+today.date <- "3-11-2020"
 
 # Calculating the marginal effects.
 # Amino acid frequency only model.
@@ -201,7 +201,25 @@ marginals.clusters.log.nb.wmax
 write_tsv(marginals.clusters.log.nb.wmax, path = "Data/supplemental_table_2.tsv")
 
 # Importing data for James et al.'s phylostratigraphy slopes.
-slopes.aa.props <- read_tsv(file = "Data/phylostratigraphy_aasummary_3-4-2020.tsv")
+# Genes first.
+gene.slopes <- read_csv(file = "Data/AAcomp_Fullgene_Nontrans.csv")
+gene.slopes.only <- gene.slopes[, c(2,3:4,6:7,15:16)]
+gene.slopes.only
+names(gene.slopes.only) <- c("AA", "AnimalYoungGeneSlope", "AnimalYoungGeneError",
+                             "PlantYoungGeneSlope", "PlantYoungGeneError",
+                             "AncientGeneSlope", "AncientGeneError")
+gene.slopes.only
+
+# And now Pfams.
+pfam.slopes <- read_csv(file = "Data/AAcomp_Pfam_Nontrans.csv")
+pfam.slopes.only <- pfam.slopes[, c(1:4, 6:7, 15:16)]
+names(pfam.slopes.only)
+names(pfam.slopes.only) <- c("OneLetter", "AA", "AnimalYoungPfamSlope", "AnimalYoungPfamError",
+                             "PlantYoungPfamSlope", "PlantYoungPfamError",
+                             "AncientPfamSlope", "AncientPfamError")
+pfam.slopes.only
+
+slopes.aa.props <- merge(gene.slopes.only, pfam.slopes.only, by = "AA")
 slopes.aa.props
 
 # Renaming the columns of the marginals data frame to match those from James et al.'s data frame.
@@ -212,12 +230,9 @@ names(marginals.clusters.log.nb.wmax) <- c("AA", colname.marginals, colname.stde
 names(marginals.clusters.log.nb.wmax)
 marginals.clusters.log.nb.wmax
 
-# Deleting any columns in the James et al. data frame with these names.
-slopes.aa.props$MarginalLogNBWMax <- NULL
-slopes.aa.props$MarginalLogNBWMaxErr <- NULL
-
 # Merging the James et al. data frame and the marginal effects data frames.
 slopes.aa.props <- merge(slopes.aa.props, marginals.clusters.log.nb.wmax, by = "AA")
+slopes.aa.props
 
 # Checking weighted correlations.
 # First, making a function for a weighted Pearson's correlation where both X and Y have their own
@@ -257,22 +272,22 @@ z.w.transform <- function(x, x.err){
 animalpfam.cor <- custom.weighted.pearson(
   x = slopes.aa.props$MarginalLogNBWMax,
   x.var = slopes.aa.props$MarginalLogNBWMaxErr,
-  y = slopes.aa.props$AnimalNonTransmembraneYoungPfamSlopes,
-  y.var = slopes.aa.props$AnimalNonTransmembraneYoungPfamError
+  y = slopes.aa.props$AnimalYoungPfamSlope,
+  y.var = slopes.aa.props$AnimalYoungPfamError
 )
 animalpfam.cor
 plantpfam.cor <- custom.weighted.pearson(
   x = slopes.aa.props$MarginalLogNBWMax,
   x.var = slopes.aa.props$MarginalLogNBWMaxErr,
-  y = slopes.aa.props$PlantNonTransmembraneYoungPfamSlopes,
-  y.var = slopes.aa.props$PlantNonTransmembraneYoungPfamError
+  y = slopes.aa.props$PlantYoungPfamSlope,
+  y.var = slopes.aa.props$PlantYoungPfamError
 )
 plantpfam.cor
 ancientpfam.cor <- custom.weighted.pearson(
   x = slopes.aa.props$MarginalLogNBWMax,
   x.var = slopes.aa.props$MarginalLogNBWMaxErr,
-  y = slopes.aa.props$AllNonTransmembraneOldPfamSlopes,
-  y.var = slopes.aa.props$AllNonTransmembraneOldPfamError
+  y = slopes.aa.props$AncientPfamSlope,
+  y.var = slopes.aa.props$AncientPfamError
 )
 ancientpfam.cor
 
@@ -284,22 +299,22 @@ ancientpfam.cor
 animalgene.cor <- custom.weighted.pearson(
   x = slopes.aa.props$MarginalLogNBWMax,
   x.var = slopes.aa.props$MarginalLogNBWMaxErr,
-  y = slopes.aa.props$`Animal_<1496_Slope`,
-  y.var = slopes.aa.props$`Animal_<1496_Error`
+  y = slopes.aa.props$AnimalYoungGeneSlope,
+  y.var = slopes.aa.props$AnimalYoungGeneError
 )
 animalgene.cor
 plantgene.cor <- custom.weighted.pearson(
   x = slopes.aa.props$MarginalLogNBWMax,
   x.var = slopes.aa.props$MarginalLogNBWMaxErr,
-  y = slopes.aa.props$`Plant_<1496_Slope`,
-  y.var = slopes.aa.props$`Plant_<1496_Error`
+  y = slopes.aa.props$PlantYoungGeneSlope,
+  y.var = slopes.aa.props$PlantYoungGeneError
 )
 plantgene.cor
 ancientgene.cor <- custom.weighted.pearson(
   x = slopes.aa.props$MarginalLogNBWMax,
   x.var = slopes.aa.props$MarginalLogNBWMaxErr,
-  y = slopes.aa.props$`All_>2101_Slope`,
-  y.var = slopes.aa.props$`All_>2101_Error`
+  y = slopes.aa.props$AncientGeneSlope,
+  y.var = slopes.aa.props$AncientGeneError
 )
 ancientgene.cor
 
@@ -307,10 +322,10 @@ ancientgene.cor
 partB.name <- paste("Scripts/Figures/NonTransmembranePlantYoungPfam_MarginalLogNB_notrel_", today.date, ".png", sep = "")
 plant.cor.label <- paste("R =", signif(plantpfam.cor[1], 2), "p =", signif(plantpfam.cor[4], 1))
 png(filename = partB.name, width = 600, height = 600)
-ggplot(data = slopes.aa.props, aes(x = MarginalLogNBWMax, y = PlantNonTransmembraneYoungPfamSlopes)) +
+ggplot(data = slopes.aa.props, aes(x = MarginalLogNBWMax, y = PlantYoungPfamSlope)) +
   geom_point(size = 4) +
-  geom_errorbar(aes(ymin=PlantNonTransmembraneYoungPfamSlopes - PlantNonTransmembraneYoungPfamError,
-                    ymax=PlantNonTransmembraneYoungPfamSlopes + PlantNonTransmembraneYoungPfamError),
+  geom_errorbar(aes(ymin=PlantYoungPfamSlope - PlantYoungPfamError,
+                    ymax=PlantYoungPfamSlope + PlantYoungPfamError),
                 size = 1) +
   geom_errorbarh(aes(xmin=MarginalLogNBWMax - MarginalLogNBWMaxErr,
                      xmax=MarginalLogNBWMax + MarginalLogNBWMaxErr), size = 1) +
@@ -331,10 +346,10 @@ dev.off()
 partA.name <- paste("Scripts/Figures/NonTransmembraneAnimalYoungPfam_MarginalLogNB_notrel_", today.date, ".png", sep = "")
 animal.cor.label <- paste("R =", signif(animalpfam.cor[1], 2), "p =", signif(animalpfam.cor[4], 1))
 png(filename = partA.name, width = 600, height = 600)
-ggplot(data = slopes.aa.props, aes(x = MarginalLogNBWMax, y = AnimalNonTransmembraneYoungPfamSlopes)) +
+ggplot(data = slopes.aa.props, aes(x = MarginalLogNBWMax, y = AnimalYoungPfamSlope)) +
   geom_point(size = 4) +
-  geom_errorbar(aes(ymin=AnimalNonTransmembraneYoungPfamSlopes - AnimalNonTransmembraneYoungPfamError,
-                    ymax=AnimalNonTransmembraneYoungPfamSlopes + AnimalNonTransmembraneYoungPfamError),
+  geom_errorbar(aes(ymin=AnimalYoungPfamSlope - AnimalYoungPfamError,
+                    ymax=AnimalYoungPfamSlope + AnimalYoungPfamError),
                 size = 1) +
   geom_errorbarh(aes(xmin=MarginalLogNBWMax - MarginalLogNBWMaxErr,
                      xmax=MarginalLogNBWMax + MarginalLogNBWMaxErr), size = 1) +
@@ -355,10 +370,10 @@ dev.off()
 partC.name <- paste("Scripts/Figures/NonTransmembraneAncientPfam_MarginalLogNB_notrel_", today.date, ".png", sep = "")
 ancient.cor.label <- paste("R =", signif(ancientpfam.cor[1], 2), "p =", signif(ancientpfam.cor[4], 1))
 png(filename = partC.name, width = 600, height = 600)
-ggplot(data = slopes.aa.props, aes(x = MarginalLogNBWMax, y = AllNonTransmembraneOldPfamSlopes)) +
+ggplot(data = slopes.aa.props, aes(x = MarginalLogNBWMax, y = AncientPfamSlope)) +
   geom_point(size = 4) +
-  geom_errorbar(aes(ymin=AllNonTransmembraneOldPfamSlopes - AllNonTransmembraneOldPfamError,
-                    ymax=AllNonTransmembraneOldPfamSlopes + AllNonTransmembraneOldPfamError),
+  geom_errorbar(aes(ymin=AncientPfamSlope - AncientPfamError,
+                    ymax=AncientPfamSlope + AncientPfamError),
                 size = 1) +
   geom_errorbarh(aes(xmin=MarginalLogNBWMax - MarginalLogNBWMaxErr,
                      xmax=MarginalLogNBWMax + MarginalLogNBWMaxErr), size = 1) +
@@ -375,3 +390,4 @@ ggplot(data = slopes.aa.props, aes(x = MarginalLogNBWMax, y = AllNonTransmembran
   theme_bw(base_size = 28) +
   theme(legend.position = "none")
 dev.off()
+
