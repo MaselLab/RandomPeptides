@@ -611,10 +611,11 @@ peptide.maxweight.rsa[,c(1:5, 56:105)]
 peptide.maxweight.rsa <- peptide.maxweight.rsa[,c(1:5, 56:105)]
 
 # New training index.
-trainindex.rsa <- createDataPartition(
-  peptide.maxweight.rsa$Fitness.nb, p = 0.8, list = FALSE, times = 1
-)
+# trainindex.rsa <- createDataPartition(
+#   peptide.maxweight.rsa$Fitness.nb, p = 0.8, list = FALSE, times = 1
+# )
 
+# Splitting into test and training.
 rsa.train <- peptide.maxweight.rsa[trainindex,]
 rsa.test <- peptide.maxweight.rsa[-trainindex,]
 
@@ -639,3 +640,48 @@ rsa.nn.pred <- predict(rsa.nn, rsa.test.pp)
 rsa.nn.pred
 cor.test(rsa.nn.pred, rsa.test.pp$Fitness.nb, method = "pearson")
 summary(lm(formula = rsa.test.pp$Fitness.nb ~ rsa.nn.pred, weights = rsa.test$Weight.nb))
+
+# Train using just the 20 AA counts.
+peptide.aa.counts <- dplyr::select(peptide.data,
+                                   PeptideID,
+                                   Fitness.nb,
+                                   Weight.nb,
+                                   Cluster,
+                                   AASeq,
+                                   Leu, Pro, Met, Trp, Ala,
+                                   Val, Phe, Ile, Gly, Ser,
+                                   Thr, Cys, Asn, Gln, Tyr,
+                                   His, Asp, Glu, Lys, Arg)
+peptide.clusters.aacounts <- 
+  peptide.aa.counts %>%
+  group_by(Cluster) %>%
+  filter(Weight.nb == max(Weight.nb))
+
+peptide.clusters.aacounts
+
+# Test and training.
+aa.counts.train <- peptide.clusters.aacounts[trainindex,]
+aa.counts.test <- peptide.clusters.aacounts[-trainindex,]
+
+# Pre-processing.
+pp.aa.counts <- preProcess(aa.counts.train,
+                     method = c("center", "scale"),
+                     outcome = aa.counts.train$Fitness.nb)
+
+aa.counts.train.pp <- predict(pp.aa.counts, aa.counts.train)
+aa.counts.test.pp <- predict(pp.aa.counts, aa.counts.test)
+glimpse(aa.counts.train.pp)
+
+aa.counts.nn <- neuralnet(
+  Fitness.nb ~ Leu + Pro + Met + Trp + Ala + Val + Phe + Ile + Gly + Ser +
+               Thr + Cys + Asn + Gln + Tyr + His + Asp + Glu + Lys #+ Arg
+  ,
+  data = aa.counts.train.pp,
+  startweights = aa.counts.train$Weight.nb,
+  hidden = 1
+)
+aa.counts.nn
+aa.counts.nn.pred <- predict(aa.counts.nn, aa.counts.test.pp)
+aa.counts.nn.pred
+cor.test(aa.counts.nn.pred, aa.counts.test.pp$Fitness.nb, method = "pearson")
+summary(lm(formula = aa.counts.test.pp$Fitness.nb ~ aa.counts.nn.pred, weights = aa.counts.test$Weight.nb))
