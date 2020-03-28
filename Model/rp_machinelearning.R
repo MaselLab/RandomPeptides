@@ -500,8 +500,7 @@ peptide.mixed.nb.lm <- lmer(
     #WaltzBinary +
     #net.charge +
     (1|Cluster) +
-    0,
-  weights = Weight.nb
+    0
 )
 lmer.pred <- predict(peptide.mixed.nb.lm, newdata = peptide.data, re.form = NA, type = "response")
 pred.lme.df <- tibble(
@@ -519,8 +518,7 @@ pred.lme.bycluster
 cor.test(log(pred.lme.bycluster[-trainindex,]$fitness),
          pred.lme.bycluster[-trainindex,]$predicted, method = "pearson")
 summary(lm(data = pred.lme.bycluster[-trainindex,],
-           formula = log(fitness) ~ predicted,
-           weights = weight))
+           formula = log(fitness) ~ predicted))
 # Seems good, but I can't actually compare this. The training index does not match the test index.
 
 # Retrying with a fixed effects model.
@@ -538,8 +536,7 @@ peptide.maxweight.lm <- lm(
     #Clustering.Six +
     #WaltzBinary +
     #net.charge +
-    0,
-  weights = Weight.nb
+    0
 )
 summary(peptide.maxweight.lm)
 fit.lm.pred <- predict(peptide.maxweight.lm, newdata = peptide.all.maxweight[-trainindex,])
@@ -651,7 +648,8 @@ peptide.aa.counts <- dplyr::select(peptide.data,
                                    Leu, Pro, Met, Trp, Ala,
                                    Val, Phe, Ile, Gly, Ser,
                                    Thr, Cys, Asn, Gln, Tyr,
-                                   His, Asp, Glu, Lys, Arg)
+                                   His, Asp, Glu, Lys, Arg,
+                                   Clustering.Six, WaltzBinary, net.charge)
 peptide.clusters.aacounts <- 
   peptide.aa.counts %>%
   group_by(Cluster) %>%
@@ -672,16 +670,27 @@ aa.counts.train.pp <- predict(pp.aa.counts, aa.counts.train)
 aa.counts.test.pp <- predict(pp.aa.counts, aa.counts.test)
 glimpse(aa.counts.train.pp)
 
+start.weights <- coef(peptide.maxweight.lm)
+as.vector(start.weights)
+
 aa.counts.nn <- neuralnet(
   Fitness.nb ~ Leu + Pro + Met + Trp + Ala + Val + Phe + Ile + Gly + Ser +
-               Thr + Cys + Asn + Gln + Tyr + His + Asp + Glu + Lys #+ Arg
+               Thr + Cys + Asn + Gln + Tyr + His + Asp + Glu + Lys + Arg
+               #+ Clustering.Six + WaltzBinary + net.charge
   ,
   data = aa.counts.train.pp,
-  startweights = aa.counts.train$Weight.nb,
-  hidden = 1
+  startweights = as.vector(start.weights),
+  #startweights = NULL,
+  rep = 1,
+  hidden = c(10,2),
+  lifesign = "full",
+  #algorithm = "backprop",
+  #learningrate = 0.1
+  stepmax = 1e+05,
+  threshold = 0.04
 )
-aa.counts.nn
+#plot(aa.counts.nn)
 aa.counts.nn.pred <- predict(aa.counts.nn, aa.counts.test.pp)
 aa.counts.nn.pred
 cor.test(aa.counts.nn.pred, aa.counts.test.pp$Fitness.nb, method = "pearson")
-summary(lm(formula = aa.counts.test.pp$Fitness.nb ~ aa.counts.nn.pred, weights = aa.counts.test$Weight.nb))
+summary(lm(formula = aa.counts.test.pp$Fitness.nb ~ aa.counts.nn.pred))
