@@ -98,13 +98,13 @@ head(seq.dmy.df, 1)
 seq.dmy.df$PeptideID <- peptide.clusters.maxweight$PeptideID
 
 # Checking for linear dependencies.
-seq.dmy.catonly <- seq.dmy.df[ ,c(-1, -2, -1003)]
-seq.dmy.combos <- findLinearCombos(seq.dmy.catonly)
-seq.dmy.combos$remove
-seq.dmy.catonly.trimmed <- seq.dmy.catonly[, -seq.dmy.combos$remove]
-seq.dmy.catonly.trimmed$PeptideID <- seq.dmy.df$PeptideID
-seq.dmy.catonly.trimmed$Fitness.nb <- seq.dmy.df$Fitness.nb
-seq.dmy.catonly.trimmed$Weight.nb <- seq.dmy.df$Weight.nb
+# seq.dmy.catonly <- seq.dmy.df[ ,c(-1, -2, -1003)]
+# seq.dmy.combos <- findLinearCombos(seq.dmy.catonly)
+# seq.dmy.combos$remove
+# seq.dmy.catonly.trimmed <- seq.dmy.catonly[, -seq.dmy.combos$remove]
+# seq.dmy.catonly.trimmed$PeptideID <- seq.dmy.df$PeptideID
+# seq.dmy.catonly.trimmed$Fitness.nb <- seq.dmy.df$Fitness.nb
+# seq.dmy.catonly.trimmed$Weight.nb <- seq.dmy.df$Weight.nb
 
 # I can't use character data with the NeuralNet package. So, I'll go with AA counts.
 # Also checking with the one-hot encoding for the dummy variables, which appears to be the
@@ -393,14 +393,14 @@ set.seed(42)
 
 # Partition for splitting data into training and test sets.
 trainindex <- createDataPartition(
-  seq.dmy.catonly.trimmed$Fitness.nb, p = 0.8, list = FALSE, times = 1
+  seq.dmy.df$Fitness.nb, p = 0.8, list = FALSE, times = 1
 )
 
 # Split data into training and test sets.
 # peptide.train <- peptide.counts[trainindex, ]
 # peptide.test <- peptide.counts[-trainindex, ]
-seq.dmy.train <- seq.dmy.catonly.trimmed[trainindex,]
-seq.dmy.test <- seq.dmy.catonly.trimmed[-trainindex,]
+seq.dmy.train <- seq.dmy.df[trainindex,]
+seq.dmy.test <- seq.dmy.df[-trainindex,]
 # aa.props.train <- aa.properties.df[trainindex,]
 # aa.props.test <- aa.properties.df[-trainindex,]
 
@@ -694,3 +694,46 @@ aa.counts.nn.pred <- predict(aa.counts.nn, aa.counts.test.pp)
 aa.counts.nn.pred
 cor.test(aa.counts.nn.pred, aa.counts.test.pp$Fitness.nb, method = "pearson")
 summary(lm(formula = aa.counts.test.pp$Fitness.nb ~ aa.counts.nn.pred))
+
+# Creating pseudoreplicates to simulate weights.
+# That is, I want a data point with 10x the weight of another data point to still have 10x the
+# importance in the neural network model.
+# Only the training set is to be pseudoreplicated. This is for training purposes only to get
+# better test results. If I psuedoreplicate the test data, that could confound evaluations of
+# how well the model worked.
+pseudorep.aa.data <- as_tibble(lapply(aa.counts.train, rep, round(aa.counts.train$Weight.nb)))
+pseudorep.aa.data
+sum(round(aa.counts.train$Weight.nb))
+
+pp.pseudorep.aa <- preProcess(pseudorep.aa.data,
+                              method = c("center", "scale"),
+                              outcome = pseudorep.aa.data$Fitness.nb)
+
+pseudorep.aa.data.pp <- predict(pp.pseudorep.aa, pseudorep.aa.data)
+aa.counts.test.pp <- predict(pp.pseudorep.aa, aa.counts.test)
+glimpse(pseudorep.aa.data.pp)
+
+start.weights <- coef(peptide.maxweight.lm)
+as.vector(start.weights)
+
+aa.psuedorep.nn <- neuralnet(
+  Fitness.nb ~ Leu + Pro + Met + Trp + Ala + Val + Phe + Ile + Gly + Ser +
+    Thr + Cys + Asn + Gln + Tyr + His + Asp + Glu + Lys + Arg
+  #+ Clustering.Six + WaltzBinary + net.charge
+  ,
+  data = pseudorep.aa.data.pp,
+  startweights = as.vector(start.weights),
+  #startweights = NULL,
+  rep = 1,
+  hidden = c(10,2),
+  lifesign = "full",
+  #algorithm = "backprop",
+  #learningrate = 0.1
+  stepmax = 1e+05,
+  threshold = 0.04
+)
+#plot(aa.psuedorep.nn)
+aa.psuedorep.nn.pred <- predict(aa.psuedorep.nn, aa.counts.test.pp)
+aa.psuedorep.nn.pred
+cor.test(aa.psuedorep.nn.pred, aa.counts.test.pp$Fitness.nb, method = "pearson")
+summary(lm(formula = aa.counts.test.pp$Fitness.nb ~ aa.psuedorep.nn.pred))

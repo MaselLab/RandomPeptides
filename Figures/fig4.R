@@ -17,7 +17,7 @@ bc.back <- function(data.transformed, lambda){
 }
 
 # Global variables for quick editing.
-todays.date <- "3-25-2020"
+todays.date <- "4-6-2020"
 cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
 # Load Frumkin et al. data, kindly sent to us by Dvir Schirman.
@@ -85,7 +85,7 @@ ggplot(
 # Spearman's correlation.
 linker.spearman <- cor.test(frumkin.data$fitness_residuals_mean, frumkin.data$Predicted.fitness, method = "spearman")
 linker.spearman
-linker.cor.label <- paste("rho = ", round(linker.spearman$estimate, 2), ", ", 
+linker.cor.label <- paste("Spearman's rho = ", round(linker.spearman$estimate, 2), ", ", 
                           "p = ", round(linker.spearman$p.value, 3), sep = "")
 linker.cor.label
 
@@ -105,7 +105,7 @@ ggplot(
   xlab("Predicted fitness") +
   ylab("Fitness residual") +
   #stat_cor(method = "spearman", label.x = 0.1, label.y = -0.007, size = 5) +
-  annotate("text", label = linker.cor.label, x = 0.3, y = -0.007, size = 10,
+  annotate("text", label = linker.cor.label, x = 0.35, y = -0.007, size = 8,
            parse = F) +
   # scale_y_continuous(breaks = bc.transform(c(-0.01, 0, 0.002) + fit.resid.min.1, lambda = 250),
   #                    labels = c(-0.01, 0, 0.002)) +

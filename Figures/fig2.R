@@ -5,6 +5,7 @@ library(lme4)
 library(stringr)
 library(tidyverse)
 library(wCorr)
+library(Hmisc)
 
 # Load peptide data.
 peptide.data <- read.table(file = "Data/peptide_data_clusters_2-14-20.tsv", header = T, stringsAsFactors = F)
@@ -18,8 +19,7 @@ fitness.nb.full.lm <- lmer(data = peptide.data,
                              His + Asp + Glu + Lys + Arg +
                              Clustering.Six +
                              WaltzBinary +
-                             charge.pos +
-                             charge.neg +
+                             net.charge +
                              (1|Cluster) + 0,
                            weights = Weight.nb)
 fitness.nb.full.summary <- summary(fitness.nb.full.lm)
@@ -34,7 +34,7 @@ peptide.data$fit.full <-
 # Predicted estimated fitness with predicted fitness from the full model.
 fitness.pred.fit.cluster.lm <- lmer(
   data = peptide.data,
-  formula = log(Fitness.nb) ~ predict(fitness.nb.full.lm, newdata = peptide.data, re.form = NA) + (1|Cluster),
+  formula = log(Fitness.nb) ~ fit.full + (1|Cluster),
   weights = Weight.nb
 )
 pred.full.summary <- summary(fitness.pred.fit.cluster.lm)
@@ -125,7 +125,7 @@ with(by_cluster, weightedCorr(log(Fitness.nb), fit.full, method = "Pearson", wei
 with(by_cluster, weightedCorr(log(Fitness.nb), fit.aa, method = "Pearson", weights = Weight.nb.sum))
 
 # Plotting part A.
-todays.date <- "2-25-20"
+todays.date <- "4-6-20"
 cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 png(filename = paste("Scripts/Figures/fitness_pred_full_", todays.date, ".png", sep = ""),
     height = 500, width = 500)
@@ -136,12 +136,13 @@ ggplot(data = by_cluster,
            weight = Weight.nb.sum)
 ) +
   geom_point(alpha = 0.4) +
+  #geom_abline(slope = 1, intercept = 0, color = cbbPalette[2], size = 1.5) +
   stat_function(fun = function(x)pred.full.summary$coefficients[1,1] + pred.full.summary$coefficients[2,1]*x,
                 geom = "line", color = cbbPalette[6], size = 1.5) +
   ylab("Fitness") +
   xlab("Predicted fitness") +
-  scale_y_continuous(breaks = log(c(0.05, 0.5, 1, 2, 10)),
-                     labels = c(0.05, 0.5, 1, 2, 10)) +
+  scale_y_continuous(breaks = log(c(0.2, 0.5, 1, 2, 10)),
+                     labels = c(0.2, 0.5, 1, 2, 10)) +
   scale_x_continuous(breaks = log(c(0.2, 0.5, 1)),
                      labels = c(0.2, 0.5, 1)) +
   theme_bw(base_size = 28) +
@@ -158,12 +159,13 @@ ggplot(data = by_cluster,
            weight = Weight.nb.sum)
 ) +
   geom_point(alpha = 0.4) +
+  #geom_abline(slope = 1, intercept = 0, color = cbbPalette[2], size = 1.5) +
   stat_function(fun = function(x)pred.aa.summary$coefficients[1,1] + pred.aa.summary$coefficients[2,1]*x,
                 geom = "line", color = cbbPalette[6], size = 1.5) +
   ylab("Fitness") +
   xlab("Predicted fitness") +
-  scale_y_continuous(breaks = log(c(0.05, 0.5, 1, 2, 10)),
-                     labels = c(0.05, 0.5, 1, 2, 10)) +
+  scale_y_continuous(breaks = log(c(0.2, 0.5, 1, 2, 10)),
+                     labels = c(0.2, 0.5, 1, 2, 10)) +
   scale_x_continuous(breaks = log(c(0.2, 0.5, 1)),
                      labels = c(0.2, 0.5, 1)) +
   theme_bw(base_size = 28) +
