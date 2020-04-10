@@ -37,8 +37,9 @@ fitness.pred.fit.cluster.lm <- lmer(
   formula = log(Fitness.nb) ~ fit.full + (1|Cluster),
   weights = Weight.nb
 )
-pred.full.summary <- summary(fitness.pred.fit.cluster.lm)
-pred.full.summary$coefficients
+summary(fitness.pred.fit.cluster.lm)
+#pred.full.summary <- summary(fitness.pred.fit.cluster.lm)
+#pred.full.summary$coefficients
 
 # Amino acid composition only.
 fitness.nb.aa.lm <- lmer(data = peptide.data,
@@ -64,8 +65,9 @@ fitness.pred.aa.fit.cluster.lm <- lmer(
   formula = log(Fitness.nb) ~ predict(fitness.nb.aa.lm, newdata = peptide.data, re.form = NA) + (1|Cluster),
   weights = Weight.nb
 )
-pred.aa.summary <- summary(fitness.pred.aa.fit.cluster.lm)
-pred.aa.summary$coefficients
+summary(fitness.pred.aa.fit.cluster.lm)
+#pred.aa.summary <- summary(fitness.pred.aa.fit.cluster.lm)
+#pred.aa.summary$coefficients
 
 # Combining the data by cluster for plotting.
 by_cluster <-
@@ -117,15 +119,40 @@ fit.full.lm <- lm(data = by_cluster,
                   formula = log(Fitness.nb) ~ fit.full,
                   weights = Weight.nb.sum)
 summary(fit.full.lm)
+pred.full.summary <- summary(fit.full.lm)
+pred.full.summary$coefficients
+
 fit.aa.lm <- lm(data = by_cluster,
                 formula = log(Fitness.nb) ~ fit.aa,
                 weights = Weight.nb.sum)
 summary(fit.aa.lm)
+pred.aa.summary <- summary(fit.aa.lm)
+pred.aa.summary$coefficients
+
 with(by_cluster, weightedCorr(log(Fitness.nb), fit.full, method = "Pearson", weights = Weight.nb.sum))
 with(by_cluster, weightedCorr(log(Fitness.nb), fit.aa, method = "Pearson", weights = Weight.nb.sum))
 
+# Trying to flip the regression to X~Y, seeing what happens.
+flipped.fit.full.lm <- lm(data = by_cluster,
+                  formula = fit.full ~ log(Fitness.nb),
+                  weights = Weight.nb.sum)
+summary(flipped.fit.full.lm)
+flipped.pred.full.summary <- summary(flipped.fit.full.lm)
+flipped.pred.full.summary$coefficients
+flipped.full.int <- -flipped.pred.full.summary$coefficients[1,1] / flipped.pred.full.summary$coefficients[2,1]
+flipped.full.beta <- 1/flipped.pred.full.summary$coefficients[2,1]
+
+flipped.fit.aa.lm <- lm(data = by_cluster,
+                formula = fit.aa ~ log(Fitness.nb),
+                weights = Weight.nb.sum)
+summary(flipped.fit.aa.lm)
+flipped.pred.aa.summary <- summary(flipped.fit.aa.lm)
+flipped.pred.aa.summary$coefficients
+flipped.aa.int <- -flipped.pred.aa.summary$coefficients[1,1] / flipped.pred.aa.summary$coefficients[2,1]
+flipped.aa.beta <- 1/flipped.pred.aa.summary$coefficients[2,1]
+
 # Plotting part A.
-todays.date <- "4-6-20"
+todays.date <- "4-9-20"
 cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 png(filename = paste("Scripts/Figures/fitness_pred_full_", todays.date, ".png", sep = ""),
     height = 500, width = 500)
@@ -136,9 +163,10 @@ ggplot(data = by_cluster,
            weight = Weight.nb.sum)
 ) +
   geom_point(alpha = 0.4) +
-  #geom_abline(slope = 1, intercept = 0, color = cbbPalette[2], size = 1.5) +
-  stat_function(fun = function(x)pred.full.summary$coefficients[1,1] + pred.full.summary$coefficients[2,1]*x,
-                geom = "line", color = cbbPalette[6], size = 1.5) +
+  geom_abline(slope = 1, intercept = 0, color = cbbPalette[2], size = 1.5) +
+  geom_smooth(method = "lm", color = cbbPalette[6], size = 1.5, se = F) +
+  #stat_function(fun = function(x)flipped.full.int + flipped.full.beta*x,
+  #              geom = "line", color = cbbPalette[4], size = 1.5) +
   ylab("Fitness") +
   xlab("Predicted fitness") +
   scale_y_continuous(breaks = log(c(0.2, 0.5, 1, 2, 10)),
@@ -153,13 +181,13 @@ dev.off()
 png(filename = paste("Scripts/Figures/fitness_pred_aacomp_", todays.date, ".png", sep = ""),
     height = 500, width = 500)
 ggplot(data = by_cluster,
-       aes(x = fit.aa,
-           y = log(Fitness.nb),
+       aes(y = fit.aa,
+           x = log(Fitness.nb),
            size = Weight.nb.sum,
            weight = Weight.nb.sum)
 ) +
   geom_point(alpha = 0.4) +
-  #geom_abline(slope = 1, intercept = 0, color = cbbPalette[2], size = 1.5) +
+  geom_abline(slope = 1, intercept = 0, color = cbbPalette[2], size = 1.5) +
   stat_function(fun = function(x)pred.aa.summary$coefficients[1,1] + pred.aa.summary$coefficients[2,1]*x,
                 geom = "line", color = cbbPalette[6], size = 1.5) +
   ylab("Fitness") +

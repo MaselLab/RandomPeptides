@@ -5,7 +5,7 @@ library(lme4)
 library(stringr)
 
 # Load peptide data.
-peptide.data <- read.table(file = "Data/peptide_data_clusters_7-20-19.tsv", header = T, stringsAsFactors = F)
+peptide.data <- read.table(file = "Data/peptide_data_clusters_2-14-20.tsv", header = T, stringsAsFactors = F)
 peptide.data
 
 # Building the model.
@@ -18,7 +18,8 @@ peptide.mixed.nb.freq.lm <- lmer(
     Thr.freq + Cys.freq + Asn.freq + Gln.freq + Tyr.freq +
     His.freq + Asp.freq + Glu.freq + Lys.freq + Arg.freq +
     Clustering.Six +
-    #WaltzBinary +
+    WaltzBinary +
+    net.charge +
     #sqrt(ISD) +
     #TangoBinary +
     #CamSol.avg +
@@ -43,6 +44,7 @@ peptide.mixed.nb.freq.aaonly.lm <- lmer(
   weights = Weight.nb
 )
 summary(peptide.mixed.nb.freq.aaonly.lm)
+drop1(peptide.mixed.nb.freq.aaonly.lm, test = "Chisq")
 
 # Non-freq models.
 peptide.mixed.nb.aaonly.lm <- lmer(
@@ -67,6 +69,8 @@ peptide.mixed.nb.lm <- lmer(
     Thr + Cys + Asn + Gln + Tyr +
     His + Asp + Glu + Lys + Arg +
     Clustering.Six +
+    WaltzBinary +
+    net.charge +
     (1|Cluster) +
     0,
   weights = Weight.nb
