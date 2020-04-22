@@ -12,6 +12,9 @@ getmode <- function(v) {
   uniqv[which.max(tabulate(match(v, uniqv)))]
 }
 
+# Today's date
+todays.date <- "4-16-2020"
+
 # Load peptide data.
 peptide.data <- read.table(file = "Data/peptide_data_clusters_2-14-20.tsv", header = T, stringsAsFactors = F)
 
@@ -206,7 +209,6 @@ charge.fit.lm <- lm(
 summary(charge.fit.lm)
 
 # Making the plots and exporting.
-todays.date <- "3-9-2020"
 cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 png(filename = paste("Scripts/Figures/fitness_isd_", todays.date, ".png", sep = ""),
     height = 500, width = 500)
@@ -223,6 +225,7 @@ ggplot(
   stat_function(fun = function(x)isd.summary$coefficients[1,1]+isd.summary$coefficients[2,1]*x,
                 geom = "line", color = cbbPalette[6], size = 1.5) +
   ylab("Fitness") +
+  #geom_abline(slope = 1, intercept = 0, color = cbbPalette[2], size = 1.5) +
   xlab(expression(sqrt("ISD"))) +
   scale_y_continuous(breaks = log(c(0.05, 0.5, 1, 2)),
                      labels = c(0.05, 0.5, 1, 2),
@@ -245,6 +248,7 @@ ggplot(
   )
 ) +
   geom_point(alpha = 0.4) +
+  #geom_abline(slope = 1, intercept = 0, color = cbbPalette[2], size = 1.5) +
   stat_function(fun = function(x)clustering.summary$coefficients[1,1]+clustering.summary$coefficients[2,1]*x,
                 geom = "line", color = cbbPalette[6], size = 1.5) +
   ylab("Fitness") +
@@ -270,6 +274,7 @@ ggplot(
   )
 ) +
   geom_point(alpha = 0.4) +
+  #geom_abline(slope = 1, intercept = 0, color = cbbPalette[2], size = 1.5) +
   stat_function(fun = function(x)camsol.summary$coefficients[1,1]+camsol.summary$coefficients[2,1]*x,
                 geom = "line", color = cbbPalette[6], size = 1.5) +
   ylab("Fitness") +
@@ -327,6 +332,7 @@ ggplot(
   )
 ) +
   geom_point(alpha = 0.5) +
+  #geom_abline(slope = 1, intercept = 0, color = cbbPalette[2], size = 1.5) +
   #geom_smooth(method = "lm") +
   ylab("Fitness") +
   xlab("Expected net charge") +

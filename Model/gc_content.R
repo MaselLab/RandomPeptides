@@ -155,6 +155,11 @@ quantile(peptides.maxweight$GC.avg)
 # Checking the full data set's GC content.
 mean.gc(nt.fasta)
 
+# What is the GC content of the unique peptide sequences?
+unique.seqs.df <- nt.seqs.df %>% distinct(aas, .keep_all = T)
+unique.seqs.df
+mean.gc(DNAStringSet(unique.seqs.df$nts)) # Still about 59%
+
 # Updating the supplemental table with GC content.
 peptide.data$GC.avg <- NA
 for (i in 1:length(peptide.data$PeptideID)) {
