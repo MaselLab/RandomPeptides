@@ -3,6 +3,7 @@
 # Packages.
 library(lme4)
 library(stringr)
+library(Hmisc)
 
 # Load peptide data.
 peptide.data <- read.table(file = "Data/peptide_data_clusters_4-9-20.tsv", header = T, stringsAsFactors = F)
@@ -88,35 +89,11 @@ peptide.mixed.other.predictors.nb.lm <- lmer(
     Clustering.Six +
     WaltzBinary +
     net.charge +
-    GC.avg +
     (1|Cluster) +
     0,
   weights = Weight.nb
 )
 summary(peptide.mixed.other.predictors.nb.lm)
-anova(peptide.mixed.nb.lm, peptide.mixed.other.predictors.nb.lm, test = "LRT")
-AIC(peptide.mixed.nb.lm)
+anova(peptide.mixed.nb.aaonly.lm, peptide.mixed.other.predictors.nb.lm, test = "LRT")
+AIC(peptide.mixed.nb.aaonly.lm)
 AIC(peptide.mixed.other.predictors.nb.lm)
-
-# Standard errors on weights.
-peptide.data$std.err <- sqrt(1/peptide.data$Weight.nb)
-# Significantly increasing.
-length(peptide.data[peptide.data$Fitness.nb - 1.96*peptide.data$std.err > 1,]$PeptideID)
-# Signficantly decreasing.
-length(peptide.data[peptide.data$Fitness.nb + 1.96*peptide.data$std.err < 1,]$PeptideID)
-# Different than what Neme et al. found.
-
-length(
-  peptide.data[
-    (peptide.data$Fitness.nb + 1.96*peptide.data$std.err > 1) & (peptide.data$fitness == 0),
-    ]$PeptideID
-)
-
-# Need to load in the peptides Neme et al. found beneficial.
-rafik.results <- read_tsv(file = "Data/rafik_results.tsv")
-rafik.results
-pep.increasing <- rafik.results[!is.na(rafik.results$`Up any`),]$ID
-length(pep.increasing)
-
-277 - length(peptide.data[(peptide.data$Fitness.nb - 1.96*peptide.data$std.err > 1) &
-               (peptide.data$PeptideID %in% pep.increasing),]$PeptideID)
