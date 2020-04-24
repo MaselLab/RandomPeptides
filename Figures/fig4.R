@@ -1,124 +1,143 @@
-# Looking at the fitness of random linker regions from Frumkin et al. 2017.
+# Weighted T-test of GC content 1st or 2nd position of amino acid vs marginal effects.
 
-# Load packages.
+# Load libraries.
 library(tidyverse)
-library(MASS)
-library(ggpubr)
+library(weights)
 
-# Box-Cox transformation.
-bc.transform <- function(data.vector, lambda){
-  data.transformed <- ((data.vector ^ lambda) - 1) / lambda
-  return(data.transformed)
-}
-
-bc.back <- function(data.transformed, lambda){
-  data.orginal <- ((data.transformed * lambda) + 1) ^ (1/lambda)
-  return(data.orginal)
-}
-
-# Global variables for quick editing.
-todays.date <- "4-6-2020"
+# Global variables.
+todays.date <- "4-23-2020"
 cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
-# Load Frumkin et al. data, kindly sent to us by Dvir Schirman.
-frumkin.data <- read_csv(file = "Data/peptide_fitness.csv")
-frumkin.data
+# Load marginal effects.
+marginals <- read_tsv("Scripts/RandomPeptides/Data/supplemental_table_2.tsv")
+marginals
 
-# Load fitness predictor.
-source(file = "Scripts/predict_fitness.R")
+# Adding in weights.
+marginals$Weight <- 1/(marginals$Std.Err ^ 2)
+marginals
 
-# Predicting fitness from AA sequence.
-frumkin.data$Predicted.fitness <- fitness.calculator(aa.sequence = frumkin.data$AA_seq)
+# Adding first and second position GC or AT preference.
+gc.first.second <- tibble(
+  "AminoAcid" = marginals$AminoAcid,
+  "GC.first" = c(NA, "GC", "AT", "AT", "GC",
+                 "GC", "AT", "AT", "GC", "AT",
+                 "AT", "AT", "AT", "GC", "AT",
+                 "GC", "GC", "GC", "AT", NA),
+  "GC.second" = c("AT", "GC", "AT", "GC", "GC",
+                  "AT", "AT", "AT", "GC", "GC",
+                  "GC", "GC", "AT", "AT", "AT",
+                  "AT", "AT", "AT", "AT", "GC")
+)
+gc.first.second
 
-# Looking at the relationship between fitness and predicted fitness.
+marginals.gc <- merge(marginals, gc.first.second, by = "AminoAcid")
+marginals.gc
+
+# Looking at the standard errors between the groups.
+summary(marginals.gc[marginals.gc$GC.first == "AT",]$Std.Err)
+summary(marginals.gc[marginals.gc$GC.first == "GC",]$Std.Err)
+summary(marginals.gc[marginals.gc$GC.second == "AT",]$Std.Err)
+summary(marginals.gc[marginals.gc$GC.second == "GC",]$Std.Err)
+
+# T-tests.
+first.pos.ttest <- wtd.t.test(y = marginals.gc[marginals.gc$GC.first == "AT",]$MarginalEffect,
+                              x = marginals.gc[marginals.gc$GC.first == "GC",]$MarginalEffect,
+                              weighty = marginals.gc[marginals.gc$GC.first == "AT",]$Weight,
+                              weight = marginals.gc[marginals.gc$GC.first == "GC",]$Weight)
+first.pos.ttest
+2 ^ first.pos.ttest$additional[[1]]
+
+second.pos.ttest <- wtd.t.test(y = marginals.gc[marginals.gc$GC.second == "AT",]$MarginalEffect,
+                               x = marginals.gc[marginals.gc$GC.second == "GC",]$MarginalEffect,
+                               weighty = marginals.gc[marginals.gc$GC.second == "AT",]$Weight,
+                               weight = marginals.gc[marginals.gc$GC.second == "GC",]$Weight)
+second.pos.ttest
+2 ^ second.pos.ttest$additional[[1]]
+
+# Checking confidence intervals.
+t.stat.first <- qt(0.975, df = first.pos.ttest$coefficients[[2]])
+t.stat.first
+2 ^ (first.pos.ttest$additional[[1]] + t.stat.first * first.pos.ttest$additional[[4]]) # 1.11
+2 ^ (first.pos.ttest$additional[[1]] - t.stat.first * first.pos.ttest$additional[[4]]) # 0.98
+
+t.stat.second <- qt(0.975, df = second.pos.ttest$coefficients[[2]])
+t.stat.second
+2 ^ (second.pos.ttest$additional[[1]] + t.stat.second * second.pos.ttest$additional[[4]]) # 1.13
+2 ^ (second.pos.ttest$additional[[1]] - t.stat.second * second.pos.ttest$additional[[4]]) # 1.03
+
+# Adding one letter amino acid abbreviations for graphing.
+marginals.gc$OneLetter <-
+  c("A", "R", "N", "D", "C",
+    "Q", "E", "G", "H", "I",
+    "L", "K", "M", "F", "P",
+    "S", "T", "W", "Y", "V")
+marginals.gc
+
+# Plotting these.
+codon.first.name <- paste("Scripts/Figures/GCvsAT_first_marginals_", todays.date, ".png", sep = "")
+png(filename = codon.first.name, width = 600, height = 600)
 ggplot(
-  data = frumkin.data,
+  data = marginals.gc,
   aes(
-    x = Predicted.fitness,
-    y = fitness_residuals_mean
+    x = GC.first,
+    y = MarginalEffect,
+    size = Weight
   )
 ) +
-  geom_point() +
-  geom_smooth()
+  geom_point(alpha = 0.4) +
+  geom_text(aes(label = OneLetter), hjust = -0.4, vjust = -0.01, size = 9, color = "grey30") +
+  theme_bw(base_size = 28) +
+  xlab("GC vs AT,\n1st nucleotide in codon") +
+  ylab("Effect on genotype freq / cycle\n(fold change)") +
+  scale_y_continuous(breaks = c(-0.2, -0.1, 0, 0.1),
+                     labels = round(2^c(-0.2, -0.1, 0, 0.1), digits = 2)) +
+  theme(legend.position = "none")
+dev.off()
 
-# Looking at the distributions.
-quantile(frumkin.data$fitness_residuals_mean)
-hist(frumkin.data$fitness_residuals_mean)
-fit.resid.min.1 <- 1 - min(frumkin.data$fitness_residuals_mean)
-hist(frumkin.data$fitness_residuals_mean + fit.resid.min.1)
-boxcox(frumkin.data$fitness_residuals_mean + fit.resid.min.1 ~ 1, lambda = seq(100, 400, by = 0.1))
-fit.resid.lambda = 250
-hist(bc.transform(frumkin.data$fitness_residuals_mean + fit.resid.min.1, lambda = fit.resid.lambda))
-
-hist(frumkin.data$Predicted.fitness)
-boxcox(frumkin.data$Predicted.fitness ~ 1)
-# Lambda = 0
-hist(log(frumkin.data$Predicted.fitness))
-
+codon.second.name <- paste("Scripts/Figures/GCvsAT_second_marginals_", todays.date, ".png", sep = "")
+png(filename = codon.second.name, width = 600, height = 600)
 ggplot(
-  data = frumkin.data,
+  data = marginals.gc,
   aes(
-    x = Predicted.fitness,
-    y = fitness_residuals_mean
+    x = GC.second,
+    y = MarginalEffect,
+    size = Weight
   )
 ) +
-  geom_point() +
-  geom_smooth(method = "loess", color = "red") +
-  geom_smooth(method = "lm") +
-  ylab("Fitness residuals") +
-  xlab("Predicted fitness") +
-  theme_bw(base_size = 28)
+  geom_point(alpha = 0.4) +
+  geom_text(aes(label = OneLetter), hjust = -0.4, vjust = -0.01, size = 9, color = "grey30") +
+  theme_bw(base_size = 28) +
+  xlab("GC vs AT,\n2nd nucleotide in codon") +
+  ylab("Effect on genotype freq / cycle\n(fold change)") +
+  scale_y_continuous(breaks = c(-0.2, -0.1, 0, 0.1),
+                     labels = round(2^c(-0.2, -0.1, 0, 0.1), digits = 2)) +
+  theme(legend.position = "none")
+dev.off()
 
-# Making a better histogram of transformed mean fitness residuals.
+# Plotting the confidence intervals.
+first.second.ttest.df <- tibble(
+  "pos" = factor(c("first", "second")),
+  "diff" = c(first.pos.ttest$additional[[1]], second.pos.ttest$additional[[1]]),
+  "se" = c(first.pos.ttest$additional[[4]], second.pos.ttest$additional[[4]])
+)
+first.second.ttest.df
+
+first.second.comparison <- paste("Scripts/Figures/GCvsAT_mean_comparison_", todays.date, ".png", sep = "")
+png(filename = first.second.comparison, width = 600, height = 600)
 ggplot(
-  data = frumkin.data,
+  data = first.second.ttest.df,
   aes(
-    x = bc.transform(frumkin.data$fitness_residuals_mean + fit.resid.min.1, lambda = fit.resid.lambda)
+    x = pos,
+    y = diff
   )
 ) +
-  geom_histogram(bins = 11) +
-  xlab("Fitness residuals") +
-  scale_x_continuous(breaks = bc.transform(c(-0.01, 0, 0.002) + fit.resid.min.1, lambda = 250),
-                     labels = c(-0.01, 0, 0.002)) +
-  theme_bw(base_size = 28)
-
-# Spearman's correlation.
-linker.spearman <- cor.test(frumkin.data$fitness_residuals_mean, frumkin.data$Predicted.fitness, method = "spearman")
-linker.spearman
-linker.cor.label <- paste("Spearman's rho = ", round(linker.spearman$estimate, 2), ", ", 
-                          "p = ", round(linker.spearman$p.value, 3), sep = "")
-linker.cor.label
-
-# Checking the relationship with predicted fitness.
-path.title.plot <- paste("Scripts/Figures/linker_fitness_predicted_", todays.date, ".png", sep = "")
-png(filename = path.title.plot, width = 500, height = 500)
-ggplot(
-  data = frumkin.data,
-  aes(
-    x = Predicted.fitness,
-    y = fitness_residuals_mean
-  )
-) +
-  geom_point() +
-  #geom_smooth(method = "loess", color = cbbPalette[2]) +
-  #geom_smooth(method = "lm", color = cbbPalette[6]) +
-  xlab("Predicted fitness") +
-  ylab("Fitness residual") +
-  #stat_cor(method = "spearman", label.x = 0.1, label.y = -0.007, size = 5) +
-  annotate("text", label = linker.cor.label, x = 0.35, y = -0.007, size = 8,
-           parse = F) +
-  # scale_y_continuous(breaks = bc.transform(c(-0.01, 0, 0.002) + fit.resid.min.1, lambda = 250),
-  #                    labels = c(-0.01, 0, 0.002)) +
-  # scale_x_continuous(breaks = log(c(0.05, 0.15, 0.4)),
-  #                    labels = c(0.05, 0.15, 0.4)) +
+  geom_point(size = 5) +
+  geom_errorbar(aes(ymin = diff - se, ymax = diff + se), width = 0.4, size = 2) +
+  ylab("Effect of GC - effect of AT\non genotype freq / cycle (fold change)") +
+  scale_y_continuous(breaks = c(0.04, 0.08, 0.12, 0.16),
+                     labels = round(2^c(0.04, 0.08, 0.12, 0.16), digits = 2)) +
+  xlab("Codon position") +
+  scale_x_discrete(labels = c("1st", "2nd")) +
   theme_bw(base_size = 28)
 dev.off()
 
-# Building a simple linear regression model.
-linker.lm <- lm(
-  data = frumkin.data,
-  formula = frumkin.data$fitness_residuals_mean ~ Predicted.fitness
-)
-summary(linker.lm)
-#plot(linker.lm)
-drop1(linker.lm, test = "Chisq")

@@ -2,6 +2,7 @@
 
 # Packages.
 library(lme4)
+library(tidyverse)
 library(stringr)
 library(Hmisc)
 
@@ -172,6 +173,7 @@ intercept.lm <- lm(
 summary(intercept.lm)
 
 aa.lrt <- anova(intercept.lm, aa.lm, test = "LRT")
+aa.lrt
 aa.lrt$`Pr(>Chi)`
 gc.lrt <- anova(intercept.lm, gc.lm, test = "LRT")
 gc.lrt$`Pr(>Chi)`
