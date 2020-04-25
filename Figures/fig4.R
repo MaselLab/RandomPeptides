@@ -5,7 +5,7 @@ library(tidyverse)
 library(weights)
 
 # Global variables.
-todays.date <- "4-23-2020"
+todays.date <- "4-24-2020"
 cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
 # Load marginal effects.
@@ -91,6 +91,7 @@ ggplot(
   ylab("Effect on genotype freq / cycle\n(fold change)") +
   scale_y_continuous(breaks = c(-0.2, -0.1, 0, 0.1),
                      labels = round(2^c(-0.2, -0.1, 0, 0.1), digits = 2)) +
+  scale_x_discrete(labels = c("AT", "GC", "Not\nconstrained")) +
   theme(legend.position = "none")
 dev.off()
 
@@ -133,7 +134,7 @@ ggplot(
 ) +
   geom_point(size = 5) +
   geom_errorbar(aes(ymin = diff - se, ymax = diff + se), width = 0.4, size = 2) +
-  ylab("Effect of GC - effect of AT\non genotype freq / cycle (fold change)") +
+  ylab("Benefit of amino acids using\nGC rather than AT") +
   scale_y_continuous(breaks = c(0.04, 0.08, 0.12, 0.16),
                      labels = round(2^c(0.04, 0.08, 0.12, 0.16), digits = 2)) +
   xlab("Codon position") +

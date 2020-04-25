@@ -4,6 +4,7 @@
 library(tidyverse)
 library(Biostrings)
 library(wCorr)
+library(Hmisc)
 
 # Importing random peptide data.
 peptide.data <- read.table(file = "Data/peptide_data_clusters_2-14-20.tsv", header = T, stringsAsFactors = F)
@@ -20,12 +21,22 @@ nt.seqs.df <- tibble("id" = names(nt.fasta),
                      "aas" = paste(translate(nt.fasta, if.fuzzy.codon = "solve")))
 # The following command returned multiple matches.
 nt.seqs.df[as.character(nt.seqs.df$aas) == as.character(peptide.data$AASeq[1]), "nts"]
+length(nt.seqs.df[as.character(nt.seqs.df$aas) == as.character(peptide.data$AASeq[1]),]$nts)
 # This means I can't actually figure out the exact nucleotide sequence of the peptides I have.
 # A consensus will have to suffice.
 length(unique(nt.seqs.df$aas))
 length(nt.seqs.df$aas)
 length(unique(nt.seqs.df$nts))
+length(unique(nt.seqs.df$nts)) - length(unique(nt.seqs.df$aas))
 #merged.sequences.df <- merge(nt.seqs.df, peptide.data[, c("PeptideID", "AASeq")])
+
+# How many nucleotide sequences do the 1000 peptides we analyze map to?
+peptide.data$nt.count <- NA
+for (i in 1:length(peptide.data$PeptideID)) {
+  peptide.data$nt.count[i] <-
+    length(nt.seqs.df[as.character(nt.seqs.df$aas) == as.character(peptide.data$AASeq[i]),]$nts)
+}
+sum(peptide.data$nt.count)
 
 # Working out the substrings to get just random region.
 nt.seqs.df$aas[1:20]
@@ -168,6 +179,7 @@ for (i in 1:length(peptide.data$PeptideID)) {
       incomplete.peptide.data[incomplete.peptide.data$PeptideID == peptide.data$PeptideID[i], "GC.avg"]
   }
 }
-peptide.data[is.na(peptide.data$GC.avg), c("PeptideID", "GC.avg")]
+peptide.data[is.na(peptide.data$GC.avg), c("PeptideID", "GC.avg", "Cluster")]
+peptide.data[peptide.data$Cluster == 124, c("PeptideID", "GC.avg", "Weight.nb")]
 
 write_tsv(peptide.data, path = "Data/peptide_data_clusters_4-9-20.tsv")
