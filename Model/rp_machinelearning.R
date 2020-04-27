@@ -12,7 +12,7 @@ library(lme4)
 #library(DECIPHER)
 
 # Load peptide data.
-peptide.data <- read.table(file = "Data/peptide_data_clusters_2-14-20.tsv", header = T, stringsAsFactors = F)
+peptide.data <- read.table(file = "Scripts/RandomPeptides/Data/supplemental_table_1.tsv", header = T, stringsAsFactors = F)
 peptide.data <- as_tibble(peptide.data)
 peptide.data
 glimpse(peptide.data)
