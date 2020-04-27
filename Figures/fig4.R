@@ -5,7 +5,7 @@ library(tidyverse)
 library(weights)
 
 # Global variables.
-todays.date <- "4-24-2020"
+todays.date <- "4-26-2020"
 cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
 # Load marginal effects.
@@ -119,7 +119,8 @@ dev.off()
 first.second.ttest.df <- tibble(
   "pos" = factor(c("first", "second")),
   "diff" = c(first.pos.ttest$additional[[1]], second.pos.ttest$additional[[1]]),
-  "se" = c(first.pos.ttest$additional[[4]], second.pos.ttest$additional[[4]])
+  "se" = c(first.pos.ttest$additional[[4]], second.pos.ttest$additional[[4]]),
+  "t.crit" = c(t.stat.first, t.stat.second)
 )
 first.second.ttest.df
 
@@ -133,10 +134,10 @@ ggplot(
   )
 ) +
   geom_point(size = 5) +
-  geom_errorbar(aes(ymin = diff - se, ymax = diff + se), width = 0.4, size = 2) +
+  geom_errorbar(aes(ymin = diff - t.crit * se, ymax = diff + t.crit * se), width = 0.4, size = 2) +
   ylab("Benefit of amino acids using\nGC rather than AT") +
-  scale_y_continuous(breaks = c(0.04, 0.08, 0.12, 0.16),
-                     labels = round(2^c(0.04, 0.08, 0.12, 0.16), digits = 2)) +
+  scale_y_continuous(breaks = c(0.00, 0.05, 0.10, 0.15),
+                     labels = round(2^c(0.00, 0.05, 0.10, 0.15), digits = 2)) +
   xlab("Codon position") +
   scale_x_discrete(labels = c("1st", "2nd")) +
   theme_bw(base_size = 28)

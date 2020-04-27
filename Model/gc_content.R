@@ -7,7 +7,7 @@ library(wCorr)
 library(Hmisc)
 
 # Importing random peptide data.
-peptide.data <- read.table(file = "Data/peptide_data_clusters_2-14-20.tsv", header = T, stringsAsFactors = F)
+peptide.data <- read.table(file = "Scripts/RandomPeptides/Data/supplemental_table_1.tsv", header = T, stringsAsFactors = F)
 
 # Variable for checking just the random region. If T, only the random region is checked for GC content. If F,
 # the whole sequence is checked for GC content.

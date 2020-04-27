@@ -13,16 +13,16 @@ getmode <- function(v) {
 }
 
 # Today's date
-todays.date <- "4-16-2020"
+todays.date <- "4-26-2020"
 
 # Load peptide data.
-peptide.data <- read.table(file = "Data/peptide_data_clusters_2-14-20.tsv", header = T, stringsAsFactors = F)
+peptide.data <- read.table(file = "Scripts/RandomPeptides/Data/supplemental_table_1.tsv", header = T, stringsAsFactors = F)
 
 # Building the models of fitness ~ ISD, Clustering, Waltz, and CamSol.
 isd.lme <-
   lmer(
     data = peptide.data,
-    formula = log(Fitness.nb) ~ sqrt(ISD) + (1|Cluster),
+    formula = log(Fitness.nb) ~ sqrt(ISD.iupred2) + (1|Cluster),
     weights = Weight.nb
   )
 drop1(isd.lme, test = "Chisq")
@@ -107,7 +107,7 @@ peptide.data$charge.fit <- predict(charge.lme,
 by_cluster <-
   peptide.data %>% 
   group_by(Cluster) %>%
-  summarise(Weight.nb.sum = sum(Weight.nb), ISD = wtd.mean(ISD, weights = Weight.nb),
+  summarise(Weight.nb.sum = sum(Weight.nb),
             ISD.iupred2 = wtd.mean(ISD.iupred2, weights = Weight.nb), Fitness.nb = wtd.mean(Fitness.nb, weights = Weight.nb),
             Leu = wtd.mean(Leu, weights = Weight.nb), Phe = wtd.mean(Phe, weights = Weight.nb),
             Met = wtd.mean(Met, weights = Weight.nb), Val = wtd.mean(Val, weights = Weight.nb),
@@ -216,7 +216,7 @@ ggplot(
   data = by_cluster,
   aes(
     y = log(Fitness.nb),
-    x = sqrt(ISD),
+    x = sqrt(ISD.iupred2),
     size = Weight.nb.sum,
     weight = Weight.nb.sum
   )
@@ -226,7 +226,7 @@ ggplot(
                 geom = "line", color = cbbPalette[6], size = 1.5) +
   ylab("Fitness") +
   #geom_abline(slope = 1, intercept = 0, color = cbbPalette[2], size = 1.5) +
-  xlab(expression(sqrt("ISD"))) +
+  xlab("ISD") +
   scale_y_continuous(breaks = log(c(0.05, 0.5, 1, 2)),
                      labels = c(0.05, 0.5, 1, 2),
                      limits = log(c(0.04, 6))) +

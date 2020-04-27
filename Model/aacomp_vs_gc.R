@@ -7,7 +7,7 @@ library(stringr)
 library(Hmisc)
 
 # Load peptide data.
-peptide.data <- read.table(file = "Data/peptide_data_clusters_4-9-20.tsv", header = T, stringsAsFactors = F)
+peptide.data <- read.table(file = "Scripts/RandomPeptides/Data/supplemental_table_1.tsv", header = T, stringsAsFactors = F)
 peptide.data
 
 # Comparing GC content as a predictor to amino acid composition.
@@ -100,7 +100,10 @@ peptide.cluster <-
             Pro = wtd.mean(Pro, weights = Weight.nb), Ser = wtd.mean(Ser, weights = Weight.nb),
             Trp = wtd.mean(Trp, weights = Weight.nb), Tyr = wtd.mean(Tyr, weights = Weight.nb),
             Thr = wtd.mean(Thr, weights = Weight.nb), Cys = wtd.mean(Cys, weights = Weight.nb),
-            GC.avg = wtd.mean(GC.avg, weights = Weight.nb, na.rm = T))
+            GC.avg = wtd.mean(GC.avg, weights = Weight.nb, na.rm = T),
+            Clustering.Six = wtd.mean(Clustering.Six, weights = Weight.nb),
+            net.charge = wtd.mean(net.charge, weights = Weight.nb),
+            WaltzBinary = wtd.mean(WaltzBinary, weights = Weight.nb))
 peptide.cluster
 
 # Predicting fitness with predicted fitness to get R^2 values.
@@ -163,6 +166,38 @@ aa.gc.lm <- lm(
 )
 aa.gc.lm.summary <- summary(aa.gc.lm)
 aa.gc.lm.summary
+
+full.lm <- lm(
+  data = peptide.cluster,
+  formula = log(Fitness.nb) ~ 
+    Leu + Pro + Met + Trp + Ala +
+    Val + Phe + Ile + Gly + Ser +
+    Thr + Cys + Asn + Gln + Tyr +
+    His + Asp + Glu + Lys #+ Arg +
+  #0
+  + WaltzBinary + net.charge + Clustering.Six
+  ,
+  weights = Weight.nb.sum
+)
+full.lm.summary <- summary(full.lm)
+full.lm.summary
+
+full.gc.lm <- lm(
+  data = peptide.cluster,
+  formula = log(Fitness.nb) ~ 
+    Leu + Pro + Met + Trp + Ala +
+    Val + Phe + Ile + Gly + Ser +
+    Thr + Cys + Asn + Gln + Tyr +
+    His + Asp + Glu + Lys #+ Arg +
+  #0
+  + WaltzBinary + net.charge + Clustering.Six
+  + GC.avg
+  ,
+  weights = Weight.nb.sum
+)
+full.gc.lm.summary <- summary(full.gc.lm)
+full.gc.lm.summary
+drop1(full.gc.lm, test = "Chisq")
 
 # Comparing the GC content only, aa comp only, and GC content + aa comp models to intercept only.
 intercept.lm <- lm(

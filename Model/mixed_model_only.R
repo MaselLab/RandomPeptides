@@ -6,7 +6,7 @@ library(stringr)
 library(Hmisc)
 
 # Load peptide data.
-peptide.data <- read.table(file = "Data/peptide_data_clusters_4-9-20.tsv", header = T, stringsAsFactors = F)
+peptide.data <- read.table(file = "Scripts/RandomPeptides/Data/supplemental_table_1.tsv", header = T, stringsAsFactors = F)
 peptide.data
 
 # Building the model.
@@ -21,7 +21,7 @@ peptide.mixed.nb.freq.lm <- lmer(
     Clustering.Six +
     WaltzBinary +
     net.charge +
-    #sqrt(ISD) +
+    #sqrt(ISD.iupred2) +
     #TangoBinary +
     #CamSol.avg +
     #PredHel +

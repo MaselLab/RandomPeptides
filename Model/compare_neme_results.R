@@ -4,7 +4,7 @@
 library(tidyverse)
 
 # Load peptide data.
-peptide.data <- read.table(file = "Data/peptide_data_clusters_4-9-20.tsv", header = T, stringsAsFactors = F)
+peptide.data <- read.table(file = "Scripts/RandomPeptides/Data/supplemental_table_1.tsv", header = T, stringsAsFactors = F)
 peptide.data
 
 # Standard errors on weights.
@@ -49,3 +49,15 @@ different.genes <- peptide.data[(peptide.data$Fitness.nb - 1.96*peptide.data$std
                                   (peptide.data$PeptideID %in% pep.increasing),]$PeptideID
 different.genes
 count.data[count.data$PeptideID %in% different.genes, c("PeptideID", "d1.total", "d2.total", "d3.total", "d4.total")][11:20,]
+
+# Checking how many clusters are increasing/decreasing.
+peptides.maxweight <- 
+  peptide.data %>%
+  group_by(Cluster) %>%
+  filter(Weight.nb == max(Weight.nb))
+peptides.maxweight
+
+# Increasing.
+length(peptides.maxweight[peptides.maxweight$Fitness.nb - 1.96*peptides.maxweight$std.err > 1,]$PeptideID) # 127
+# Decreasing.
+length(peptides.maxweight[peptides.maxweight$Fitness.nb + 1.96*peptides.maxweight$std.err < 1,]$PeptideID) # 480
