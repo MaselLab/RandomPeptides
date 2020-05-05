@@ -21,7 +21,7 @@ todays.date <- "4-6-2020"
 cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
 # Load Frumkin et al. data, kindly sent to us by Dvir Schirman.
-frumkin.data <- read_csv(file = "Data/peptide_fitness.csv")
+frumkin.data <- read_csv(file = "Data/frumkin_fitness_residuals.csv")
 frumkin.data
 
 # Load fitness predictor.
