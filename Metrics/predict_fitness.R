@@ -5,6 +5,10 @@ library(stringr)
 # set to ignore all non-standard/unknown amino acids. To break when a
 # non-standard/unknown amino acid is encountered, set "non.standard = 'stop'".
 # To continue anyway, set "non.standard = 'continue'".
+#
+# Several models with different transforms are listed. It is highly recommended
+# to use the untransformed model. Simply comment out whichever one is being
+# used, and made sure the others are comments.
 fitness.calculator <- function(aa.sequence, non.standard = "continue"){
   L.count <- str_count(aa.sequence, pattern = "L")
   V.count <- str_count(aa.sequence, pattern = "V")
@@ -64,10 +68,31 @@ fitness.calculator <- function(aa.sequence, non.standard = "continue"){
       stopifnot(isTRUE(identical(seq.length, str_length(aa.sequence))))
     }
   }
-  fitness.ln <- - 2.24810*L.freq + 3.39860*P.freq - 4.19921*M.freq - 0.06214*W.freq + 2.92215*A.freq - 
-    2.53068*V.freq - 5.31797*F.freq - 7.89332*I.freq + 0.84818*G.freq + 1.74630*S.freq -
-    0.47038*T.freq - 1.21066*C.freq - 2.34759*N.freq + 0.26526*Q.freq - 3.83773*Y.freq -
-    3.77098*H.freq + 0.49807*D.freq - 1.43710*E.freq - 4.48956*K.freq - 2.15506*R.freq
+  # Old log2 fitness model with the wrong weights.
+  # fitness.ln <- - 2.24810*L.freq + 3.39860*P.freq - 4.19921*M.freq - 0.06214*W.freq + 2.92215*A.freq - 
+  #   2.53068*V.freq - 5.31797*F.freq - 7.89332*I.freq + 0.84818*G.freq + 1.74630*S.freq -
+  #   0.47038*T.freq - 1.21066*C.freq - 2.34759*N.freq + 0.26526*Q.freq - 3.83773*Y.freq -
+  #   3.77098*H.freq + 0.49807*D.freq - 1.43710*E.freq - 4.48956*K.freq - 2.15506*R.freq
+  # New log2 fitness model with the right weights.
+  # fitness.ln <- - 2.9001*L.freq + 3.8826*P.freq - 4.9114*M.freq - 0.4731*W.freq + 2.7177*A.freq -
+  #   3.0156*V.freq - 5.6437*F.freq - 9.6877*I.freq + 1.3503*G.freq + 0.8549*S.freq -
+  #   0.8635*T.freq - 1.7250*C.freq - 3.2173*N.freq + 0.1350*Q.freq - 4.0855*Y.freq -
+  #   4.4536*H.freq + 2.2677*D.freq - 1.9224*E.freq - 4.1495*K.freq - 1.7283*R.freq
+  # Untransformed fitness model.
+  fitness.ln <- - 0.1864*L.freq + 2.2016*P.freq - 0.8824*M.freq + 1.0711*W.freq + 2.2282*A.freq -
+    0.2323*V.freq - 1.0582*F.freq - 2.8731*I.freq + 1.3909*G.freq + 1.8825*S.freq +
+    0.5152*T.freq + 0.3916*C.freq - 0.4589*N.freq + 1.6222*Q.freq - 0.3984*Y.freq -
+    0.9476*H.freq + 1.5106*D.freq - 0.1349*E.freq - 0.2939*K.freq + 0.1635*R.freq
+  # Fixed-effects only log2 fitness transformed.
+  # fitness.ln <- - 0.44510*L.freq + 0.65312*P.freq - 3.21922*M.freq + 2.07656*W.freq + 0.67450*A.freq -
+  #   0.74113*V.freq + 0.83128*F.freq + 0.63621*I.freq - 0.09014*G.freq + 2.93294*S.freq -
+  #   0.22391*T.freq - 0.56780*C.freq - 3.64141*N.freq - 2.35929*Q.freq + 1.11864*Y.freq +
+  #   0.21332*H.freq - 0.18255*D.freq - 4.82163*E.freq + 5.17770*K.freq + 1.13105*R.freq
+  # Fixed-effect only non-transformed.
+  # fitness.ln <- - 0.3669*L.freq + 2.8726*P.freq - 1.6441*M.freq + 1.7699*W.freq + 2.9968*A.freq -
+  #   0.7867*V.freq - 0.8554*F.freq - 3.5042*I.freq + 1.8184*G.freq + 2.3805*S.freq +
+  #   0.5263*T.freq + 0.4163*C.freq - 2.3516*N.freq + 1.9419*Q.freq - 1.5624*Y.freq -
+  #   1.8172*H.freq + 3.2542*D.freq - 1.3465*E.freq + 0.7604*K.freq + 0.4455*R.freq
   fitness <- exp(fitness.ln)
   return(fitness)
 }

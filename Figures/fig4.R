@@ -5,7 +5,7 @@ library(tidyverse)
 library(weights)
 
 # Global variables.
-todays.date <- "4-26-2020"
+todays.date <- "5-15-2020"
 cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
 # Load marginal effects.
@@ -14,7 +14,8 @@ marginals
 
 # Adding in weights.
 marginals$Weight <- 1/(marginals$Std.Err ^ 2)
-marginals
+names(marginals)
+names(marginals)[1] <- "AminoAcid"
 
 # Adding first and second position GC or AT preference.
 gc.first.second <- tibble(
@@ -40,15 +41,15 @@ summary(marginals.gc[marginals.gc$GC.second == "AT",]$Std.Err)
 summary(marginals.gc[marginals.gc$GC.second == "GC",]$Std.Err)
 
 # T-tests.
-first.pos.ttest <- wtd.t.test(y = marginals.gc[marginals.gc$GC.first == "AT",]$MarginalEffect,
-                              x = marginals.gc[marginals.gc$GC.first == "GC",]$MarginalEffect,
+first.pos.ttest <- wtd.t.test(y = marginals.gc[marginals.gc$GC.first == "AT",]$Mean,
+                              x = marginals.gc[marginals.gc$GC.first == "GC",]$Mean,
                               weighty = marginals.gc[marginals.gc$GC.first == "AT",]$Weight,
                               weight = marginals.gc[marginals.gc$GC.first == "GC",]$Weight)
 first.pos.ttest
 2 ^ first.pos.ttest$additional[[1]]
 
-second.pos.ttest <- wtd.t.test(y = marginals.gc[marginals.gc$GC.second == "AT",]$MarginalEffect,
-                               x = marginals.gc[marginals.gc$GC.second == "GC",]$MarginalEffect,
+second.pos.ttest <- wtd.t.test(y = marginals.gc[marginals.gc$GC.second == "AT",]$Mean,
+                               x = marginals.gc[marginals.gc$GC.second == "GC",]$Mean,
                                weighty = marginals.gc[marginals.gc$GC.second == "AT",]$Weight,
                                weight = marginals.gc[marginals.gc$GC.second == "GC",]$Weight)
 second.pos.ttest
@@ -57,12 +58,12 @@ second.pos.ttest
 # Checking confidence intervals.
 t.stat.first <- qt(0.975, df = first.pos.ttest$coefficients[[2]])
 t.stat.first
-2 ^ (first.pos.ttest$additional[[1]] + t.stat.first * first.pos.ttest$additional[[4]]) # 1.11
-2 ^ (first.pos.ttest$additional[[1]] - t.stat.first * first.pos.ttest$additional[[4]]) # 0.98
+2 ^ (first.pos.ttest$additional[[1]] + t.stat.first * first.pos.ttest$additional[[4]]) # 1.09
+2 ^ (first.pos.ttest$additional[[1]] - t.stat.first * first.pos.ttest$additional[[4]]) # 1.00
 
 t.stat.second <- qt(0.975, df = second.pos.ttest$coefficients[[2]])
 t.stat.second
-2 ^ (second.pos.ttest$additional[[1]] + t.stat.second * second.pos.ttest$additional[[4]]) # 1.13
+2 ^ (second.pos.ttest$additional[[1]] + t.stat.second * second.pos.ttest$additional[[4]]) # 1.09
 2 ^ (second.pos.ttest$additional[[1]] - t.stat.second * second.pos.ttest$additional[[4]]) # 1.03
 
 # Adding one letter amino acid abbreviations for graphing.
@@ -80,7 +81,7 @@ ggplot(
   data = marginals.gc,
   aes(
     x = GC.first,
-    y = MarginalEffect,
+    y = Mean,
     size = Weight
   )
 ) +
@@ -88,9 +89,9 @@ ggplot(
   geom_text(aes(label = OneLetter), hjust = -0.4, vjust = -0.01, size = 9, color = "grey30") +
   theme_bw(base_size = 28) +
   xlab("GC vs AT,\n1st nucleotide in codon") +
-  ylab("Effect on genotype freq / cycle\n(fold change)") +
-  scale_y_continuous(breaks = c(-0.2, -0.1, 0, 0.1),
-                     labels = round(2^c(-0.2, -0.1, 0, 0.1), digits = 2)) +
+  ylab("Effect on genotype freq / cycle") +
+  #scale_y_continuous(breaks = c(-0.2, -0.1, 0, 0.1),
+  #                   labels = round(2^c(-0.2, -0.1, 0, 0.1), digits = 2)) +
   scale_x_discrete(labels = c("AT", "GC", "Not\nconstrained")) +
   theme(legend.position = "none")
 dev.off()
@@ -101,7 +102,7 @@ ggplot(
   data = marginals.gc,
   aes(
     x = GC.second,
-    y = MarginalEffect,
+    y = Mean,
     size = Weight
   )
 ) +
@@ -109,9 +110,9 @@ ggplot(
   geom_text(aes(label = OneLetter), hjust = -0.4, vjust = -0.01, size = 9, color = "grey30") +
   theme_bw(base_size = 28) +
   xlab("GC vs AT,\n2nd nucleotide in codon") +
-  ylab("Effect on genotype freq / cycle\n(fold change)") +
-  scale_y_continuous(breaks = c(-0.2, -0.1, 0, 0.1),
-                     labels = round(2^c(-0.2, -0.1, 0, 0.1), digits = 2)) +
+  ylab("Effect on genotype freq / cycle") +
+  #scale_y_continuous(breaks = c(-0.2, -0.1, 0, 0.1),
+  #                   labels = round(2^c(-0.2, -0.1, 0, 0.1), digits = 2)) +
   theme(legend.position = "none")
 dev.off()
 
