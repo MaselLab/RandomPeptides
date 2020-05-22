@@ -1,18 +1,20 @@
 # Amino acid composition-based predictors.
 mean.metric.calculator <- function(aa.sequence, metric){
-  # Metrics available:  "disorder" for disoder propensity
-  #                     "stickiness" for interaction interface propensity
-  #                     "RSA-hydrophobicity" for 1 - mean RSA, a measure of hydrophobicity
-  #                     "RSA-hydrophilicity" for RSA, a measure of hydrophilicity
-  #                     "Buried-100" for fraction of 100% buried residues with RSA = 0.
-  #                     "Buried-95" for fraction of 95% buried residues with RSA < 0.05.
-  #                     "fitness" for fitness effects calculated from random peptides in E. coli.
+  # Metrics available:  "disorder" for disoder propensity from Theillet et al. (2013)
+  #                     "stickiness" for interaction interface propensity from Levy et al. (2012)
+  #                     "RSA-hydrophobicity" for 1 - mean RSA, a measure of hydrophobicity from Tien et al. (2013)
+  #                     "RSA-hydrophilicity" for RSA, a measure of hydrophilicity from Tien et al. (2013)
+  #                     "Buried-100" for fraction of 100% buried residues with RSA = 0. from Tien et al. (2013)
+  #                     "Buried-95" for fraction of 95% buried residues with RSA < 0.05. from Tien et al. (2013)
+  #                     "fitness" for fitness effects calculated from random peptides in E. coli from Kosinski et al. (2020)
   #                     "area" for mean amino acid area.
   #                     "weight" for mean amino acid weight in Da.
   #                     "pI" for mean isoelectric point.
   #                     "cost-aerobic" from Raiford et al 2008, taken from Basile et al. 2019 table s7, for S. cerevisiae.
   #                     "cost-anaerobic" from Raiford et al 2008, taken from Basile et al. 2019 table s7, for S. cerevisiae.
   #                     "cost-ecoli" from Akashi and Gojobori 2002 table 1, for E. coli. This is aerobic only.
+  #                     "volume" for mean amino acid volume in angstroms cubed
+  #                     "carbons" for the mean amino acid side chain carbons
   seq.length <- str_length(aa.sequence)
   L.count <- str_count(aa.sequence, pattern = "L")
   V.count <- str_count(aa.sequence, pattern = "V")
@@ -158,6 +160,22 @@ mean.metric.calculator <- function(aa.sequence, metric){
       30.3*K.count + 16.3*Q.count + 11.7*S.count + 15.3*E.count + 20.3*P.count
     mean.cost.ecoli <- cost.ecoli / seq.length
     return(mean.cost.ecoli)
+  } else if (metric == "volume") {
+    volume <-
+      108.5*C.count + 227.8*W.count + 166.7*I.count + 193.6*Y.count + 189.9*F.count +
+      166.7*L.count + 153.2*H.count + 140.0*V.count + 114.1*N.count + 162.9*M.count +
+      173.4*R.count + 116.1*T.count + 111.1*D.count + 60.1*G.count + 88.6*A.count +
+      168.6*K.count + 143.8*Q.count + 89.0*S.count + 138.4*E.count + 112.7*P.count
+    mean.volume <- volume / seq.length
+    return(mean.volume)
+  } else if (metric == "carbons") {
+    carbons <-
+      1*C.count + 9*W.count + 4*I.count + 7*Y.count + 7*F.count +
+      4*L.count + 4*H.count + 3*V.count + 2*N.count + 3*M.count +
+      4*R.count + 2*T.count + 2*D.count + 0*G.count + 1*A.count +
+      4*K.count + 3*Q.count + 1*S.count + 3*E.count + 3*P.count
+    mean.carbons <- carbons / seq.length
+    return(mean.carbons)
   } else {
     print("Error -- unkown or missing metric. Please select a metric from the list provided.")
   }
