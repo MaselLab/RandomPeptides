@@ -13,12 +13,12 @@ getmode <- function(v) {
 }
 
 # Today's date
-todays.date <- "5-14-2020"
+todays.date <- "5-20-2020"
 
 # Load peptide data.
 peptide.data <- read.table(file = "Scripts/RandomPeptides/Data/supplemental_table_1.tsv", header = T, stringsAsFactors = F)
 
-# Building the models of fitness ~ ISD, Clustering, Waltz, and CamSol.
+# Building the models of fitness ~ ISD, Clustering, Tango, and CamSol.
 isd.lme <-
   lmer(
     data = peptide.data,
@@ -46,13 +46,14 @@ camsol.lme <-
 drop1(camsol.lme, test = "Chisq")
 camsol.summary <- summary(camsol.lme)
 
-waltz.lme <-
+tango.lme <-
   lmer(
     data = peptide.data,
-    formula = Fitness.nb ~ WaltzBinary + (1|Cluster),
+    formula = Fitness.nb ~ TangoAAsInAPRs + (1|Cluster),
     weights = Weight.nb.5.7
   )
-drop1(waltz.lme, test = "Chisq")
+drop1(tango.lme, test = "Chisq")
+tango.summary <- summary(tango.lme)
 
 charge.lme <-
   lmer(
@@ -67,7 +68,7 @@ charge.summary <- summary(charge.lme)
 charge.2param.lme <-
   lmer(
     data = peptide.data,
-    formula = Fitness.nb ~ charge.neg + charge.pos + (1|Cluster),
+    formula = Fitness.nb ~ abs(charge.neg) + abs(charge.pos) + (1|Cluster),
     weights = Weight.nb.5.7
   )
 drop1(charge.2param.lme, test = "Chisq")
@@ -75,6 +76,7 @@ charge.2param.summary <- summary(charge.lme)
 AIC(charge.lme)
 AIC(charge.2param.lme)
 # Single parameter model has lower AIC, so we go with the simpler model.
+# But neither are significant.
 
 # Calculating R-squared from predicted fitness vs estimated fitness from each model.
 peptide.data$ISD.fit <- predict(isd.lme,
@@ -92,7 +94,7 @@ peptide.data$camsol.fit <- predict(camsol.lme,
                                    type = "response",
                                    random.only = F,
                                    re.form = NA)
-peptide.data$Waltz.fit <- predict(waltz.lme,
+peptide.data$Tango.fit <- predict(tango.lme,
                                   newdata = peptide.data,
                                   type = "response",
                                   random.only = F,
@@ -120,12 +122,12 @@ by_cluster <-
             Trp = wtd.mean(Trp, weights = Weight.nb.5.7), Tyr = wtd.mean(Tyr, weights = Weight.nb.5.7),
             Thr = wtd.mean(Thr, weights = Weight.nb.5.7), Cys = wtd.mean(Cys, weights = Weight.nb.5.7),
             Clustering.Six = wtd.mean(Clustering.Six, weights = Weight.nb.5.7),
-            WaltzBinary = wtd.mean(WaltzBinary, weights = Weight.nb.5.7),
+            TangoAAsInAPRs = wtd.mean(TangoAAsInAPRs, weights = Weight.nb.5.7),
             CamSol.avg = wtd.mean(CamSol.avg, weights = Weight.nb.5.7),
             charge.pos = wtd.mean(charge.pos, weights = Weight.nb.5.7), charge.neg = wtd.mean(charge.neg),
             net.charge = wtd.mean(net.charge, weights = Weight.nb.5.7),
             ISD.fit = wtd.mean(ISD.fit, weights = Weight.nb.5.7), Clustering.fit = wtd.mean(Clustering.fit, weights = Weight.nb.5.7),
-            camsol.fit = wtd.mean(camsol.fit, weights = Weight.nb.5.7), Waltz.fit = wtd.mean(Waltz.fit, weights = Weight.nb.5.7),
+            camsol.fit = wtd.mean(camsol.fit, weights = Weight.nb.5.7), Tango.fit = wtd.mean(Tango.fit, weights = Weight.nb.5.7),
             charge.fit = wtd.mean(charge.fit, weights = Weight.nb.5.7)
   )
 # by_cluster$Fitness.nb.weighted <- rep(NA, length(by_cluster$Fitness.nb))
@@ -137,11 +139,11 @@ by_cluster <-
 # by_cluster$ISD.fit <- rep(NA, length(by_cluster$Cluster))
 # by_cluster$Clustering.fit <- rep(NA, length(by_cluster$Clustering.Six))
 # by_cluster$CamSol.fit <- rep(NA, length(by_cluster$CamSol.avg))
-# by_cluster$Waltz.fit <- rep(NA, length(by_cluster$WaltzBinary))
+# by_cluster$Tango.fit <- rep(NA, length(by_cluster$TangoAAsInAPRs))
 # by_cluster$ISD.weighted <- rep(NA, length(by_cluster$ISD))
 # by_cluster$Clustering.Six.weighted <- rep(NA, length(by_cluster$Clustering.Six))
 # by_cluster$CamSol.weighted <- rep(NA, length(by_cluster$CamSol.avg))
-# by_cluster$WaltzBinary.mode <- rep(NA, length(by_cluster$WaltzBinary))
+# by_cluster$TangoAAsInAPRs.mode <- rep(NA, length(by_cluster$TangoAAsInAPRs))
 # for (i in 1:length(by_cluster$Fitness.nb)) {
 #   by_cluster[by_cluster$Cluster == i, "ISD.fit"] <- 
 #     weighted.mean(predict(isd.lme,
@@ -158,8 +160,8 @@ by_cluster <-
 #                           newdata = peptide.data[peptide.data$Cluster == i, ],
 #                           re.form = NA),
 #                   peptide.data[peptide.data$Cluster == i, "Weight.nb"])
-#   by_cluster[by_cluster$Cluster == i, "Waltz.fit"] <- 
-#     weighted.mean(predict(waltz.lme,
+#   by_cluster[by_cluster$Cluster == i, "Tango.fit"] <- 
+#     weighted.mean(predict(tango.lme,
 #                           newdata = peptide.data[peptide.data$Cluster == i, ],
 #                           re.form = NA),
 #                   peptide.data[peptide.data$Cluster == i, "Weight.nb"])
@@ -172,8 +174,8 @@ by_cluster <-
 #   by_cluster[by_cluster$Cluster == i, "CamSol.weighted"] <- 
 #     weighted.mean(peptide.data[peptide.data$Cluster == i, "CamSol.avg"],
 #                   peptide.data[peptide.data$Cluster == i, "Weight.nb"])
-#   by_cluster[by_cluster$Cluster == i, "WaltzBinary.mode"] <- 
-#     getmode(peptide.data[peptide.data$Cluster == i, "WaltzBinary"])
+#   by_cluster[by_cluster$Cluster == i, "TangoAAsInAPRs.mode"] <- 
+#     getmode(peptide.data[peptide.data$Cluster == i, "TangoAAsInAPRs"])
 # }
 
 # And now for the R-squared.
@@ -195,12 +197,12 @@ camsol.fit.lm <- lm(
   weights = Weight.nb.sum
 )
 summary(camsol.fit.lm)
-waltz.fit.lm <- lm(
+Tango.fit.lm <- lm(
   data = by_cluster,
-  formula = Fitness.nb ~ Waltz.fit,
+  formula = Fitness.nb ~ Tango.fit,
   weights = Weight.nb.sum
 )
-summary(waltz.fit.lm)
+summary(Tango.fit.lm)
 charge.fit.lm <- lm(
   data = by_cluster,
   formula = Fitness.nb ~ charge.fit,
@@ -253,7 +255,7 @@ ggplot(
   #geom_abline(slope = 1, intercept = 0, color = cbbPalette[2], size = 1.5) +
   stat_function(fun = function(x)clustering.summary$coefficients[1,1]+clustering.summary$coefficients[2,1]*x,
                 geom = "line", color = cbbPalette[6], size = 1.5) +
-  #geom_smooth(method = "loess") +
+  geom_smooth(method = "loess") +
   ylab("Fitness") +
   xlab("Clustering") +
   scale_y_continuous(limits = c(0, 2)) +
@@ -301,28 +303,31 @@ boxplot.quantiles <- function(x){
   return(qntls)
 }
 
-png(filename = paste("Scripts/Figures/fitness_waltz_", todays.date, ".png", sep = ""),
+png(filename = paste("Scripts/Figures/fitness_tango_", todays.date, ".png", sep = ""),
     height = 500, width = 500)
 ggplot(
   data = by_cluster,
   aes(
     y = Fitness.nb,
-    x = round(WaltzBinary),
-    group = factor(round(WaltzBinary)),
+    x = round(TangoAAsInAPRs),
+    size = Weight.nb.sum,
     weight = Weight.nb.sum
   )
 ) +
-  stat_summary(fun.data = boxplot.quantiles, geom = "boxplot") +
-  #stat_function(fun = function(x)-0.8099 - 0.1367*x, geom = "line", color = cbbPalette[6], size = 1.5) +
+  geom_point(alpha = 0.4) +
+  #stat_summary(fun.data = boxplot.quantiles, geom = "boxplot") +
+  stat_function(fun = function(x)tango.summary$coefficients[1,1]+tango.summary$coefficients[2,1]*x,
+                geom = "line", color = cbbPalette[6], size = 1.5) +
   #geom_smooth(method = "loess") +
+  #geom_smooth(method = "lm") +
   ylab("Fitness") +
-  xlab("Waltz predicted APRs") +
+  xlab("AAs in Tango predicted APRs") +
   scale_y_continuous(limits = c(0, 2)) +
   #scale_y_continuous(breaks = log(c(0.05, 0.5, 1, 2)),
   #                   labels = c(0.05, 0.5, 1, 2),
   #                   limits = log(c(0.04, 6))) +
-  scale_x_continuous(breaks = c(0,1),
-                     labels = c("None", "1+")) +
+  #scale_x_continuous(breaks = c(0,1),
+  #                   labels = c("None", "1+")) +
   theme_bw(base_size = 28) +
   theme(legend.position = "none")
 dev.off()

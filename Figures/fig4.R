@@ -5,7 +5,7 @@ library(tidyverse)
 library(weights)
 
 # Global variables.
-todays.date <- "5-15-2020"
+todays.date <- "5-20-2020"
 cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
 # Load marginal effects.
@@ -46,25 +46,25 @@ first.pos.ttest <- wtd.t.test(y = marginals.gc[marginals.gc$GC.first == "AT",]$M
                               weighty = marginals.gc[marginals.gc$GC.first == "AT",]$Weight,
                               weight = marginals.gc[marginals.gc$GC.first == "GC",]$Weight)
 first.pos.ttest
-2 ^ first.pos.ttest$additional[[1]]
+first.pos.ttest$additional[[1]]
 
 second.pos.ttest <- wtd.t.test(y = marginals.gc[marginals.gc$GC.second == "AT",]$Mean,
                                x = marginals.gc[marginals.gc$GC.second == "GC",]$Mean,
                                weighty = marginals.gc[marginals.gc$GC.second == "AT",]$Weight,
                                weight = marginals.gc[marginals.gc$GC.second == "GC",]$Weight)
 second.pos.ttest
-2 ^ second.pos.ttest$additional[[1]]
+second.pos.ttest$additional[[1]]
 
 # Checking confidence intervals.
 t.stat.first <- qt(0.975, df = first.pos.ttest$coefficients[[2]])
 t.stat.first
-2 ^ (first.pos.ttest$additional[[1]] + t.stat.first * first.pos.ttest$additional[[4]]) # 1.09
-2 ^ (first.pos.ttest$additional[[1]] - t.stat.first * first.pos.ttest$additional[[4]]) # 1.00
+(first.pos.ttest$additional[[1]] + t.stat.first * first.pos.ttest$additional[[4]]) # 1.09
+(first.pos.ttest$additional[[1]] - t.stat.first * first.pos.ttest$additional[[4]]) # 1.00
 
 t.stat.second <- qt(0.975, df = second.pos.ttest$coefficients[[2]])
 t.stat.second
-2 ^ (second.pos.ttest$additional[[1]] + t.stat.second * second.pos.ttest$additional[[4]]) # 1.09
-2 ^ (second.pos.ttest$additional[[1]] - t.stat.second * second.pos.ttest$additional[[4]]) # 1.03
+(second.pos.ttest$additional[[1]] + t.stat.second * second.pos.ttest$additional[[4]]) # 1.09
+(second.pos.ttest$additional[[1]] - t.stat.second * second.pos.ttest$additional[[4]]) # 1.03
 
 # Adding one letter amino acid abbreviations for graphing.
 marginals.gc$OneLetter <-
@@ -137,8 +137,8 @@ ggplot(
   geom_point(size = 5) +
   geom_errorbar(aes(ymin = diff - t.crit * se, ymax = diff + t.crit * se), width = 0.4, size = 2) +
   ylab("Benefit of amino acids using\nGC rather than AT") +
-  scale_y_continuous(breaks = c(0.00, 0.05, 0.10, 0.15),
-                     labels = round(2^c(0.00, 0.05, 0.10, 0.15), digits = 2)) +
+  #scale_y_continuous(breaks = c(0.00, 0.05, 0.10, 0.15),
+  #                   labels = round(2^c(0.00, 0.05, 0.10, 0.15), digits = 2)) +
   xlab("Codon position") +
   scale_x_discrete(labels = c("1st", "2nd")) +
   theme_bw(base_size = 28)

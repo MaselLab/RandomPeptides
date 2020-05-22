@@ -79,6 +79,17 @@ peptide.mixed.nb.lm <- lmer(
 summary(peptide.mixed.nb.lm)
 drop1(peptide.mixed.nb.lm, test = "Chisq")
 
+# Checking a TMH only model.
+peptide.mixed.nb.predhel.lm <- lmer(
+  data = peptide.data,
+  formula = Fitness.nb ~
+    PredHel +
+    (1|Cluster),
+  weights = Weight.nb.5.7
+)
+summary(peptide.mixed.nb.predhel.lm)
+drop1(peptide.mixed.nb.predhel.lm, test = "Chisq")
+
 peptide.mixed.other.predictors.nb.lm <- lmer(
   data = peptide.data,
   formula = Fitness.nb ~
@@ -90,13 +101,15 @@ peptide.mixed.other.predictors.nb.lm <- lmer(
     #pI +
     #CamSol.avg +
     #Clustering.Six +
+    TangoAAsInAPRs +
+    #ISD.delta +
     #PredHel +
     #WaltzBinary +
     #net.charge +
     #GC.avg +
     (1|Cluster) +
     0,
-  weights = Weight.nb
+  weights = Weight.nb.5.7
 )
 summary(peptide.mixed.other.predictors.nb.lm)
 drop1(peptide.mixed.other.predictors.nb.lm, test = "Chisq")
