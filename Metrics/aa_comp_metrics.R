@@ -13,7 +13,7 @@ mean.metric.calculator <- function(aa.sequence, metric){
   #                     "cost-aerobic" from Raiford et al 2008, taken from Basile et al. 2019 table s7, for S. cerevisiae.
   #                     "cost-anaerobic" from Raiford et al 2008, taken from Basile et al. 2019 table s7, for S. cerevisiae.
   #                     "cost-ecoli" from Akashi and Gojobori 2002 table 1, for E. coli. This is aerobic only.
-  #                     "volume" for mean amino acid volume in angstroms cubed
+  #                     "volume" for mean amino acid volume in angstroms cubed, from Tsai et al. 1999
   #                     "carbons" for the mean amino acid side chain carbons
   seq.length <- str_length(aa.sequence)
   L.count <- str_count(aa.sequence, pattern = "L")
@@ -162,10 +162,10 @@ mean.metric.calculator <- function(aa.sequence, metric){
     return(mean.cost.ecoli)
   } else if (metric == "volume") {
     volume <-
-      108.5*C.count + 227.8*W.count + 166.7*I.count + 193.6*Y.count + 189.9*F.count +
-      166.7*L.count + 153.2*H.count + 140.0*V.count + 114.1*N.count + 162.9*M.count +
-      173.4*R.count + 116.1*T.count + 111.1*D.count + 60.1*G.count + 88.6*A.count +
-      168.6*K.count + 143.8*Q.count + 89.0*S.count + 138.4*E.count + 112.7*P.count
+      102.0*C.count + 226.1*W.count + 163.1*I.count + 194.4*Y.count + 190.8*F.count +
+      164.4*L.count + 155.8*H.count + 138.1*V.count + 122.1*N.count + 165.5*M.count +
+      190.3*R.count + 119.4*T.count + 114.2*D.count + 63.6*G.count + 89.2*A.count +
+      168.6*K.count + 146.7*Q.count + 93.4*S.count + 138.6*E.count + 121.4*P.count
     mean.volume <- volume / seq.length
     return(mean.volume)
   } else if (metric == "carbons") {
