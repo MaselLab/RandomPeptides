@@ -19,11 +19,11 @@ fitness.nb.full.lm <- lmer(data = peptide.data,
                              His + Asp + Glu + Lys + Arg +
                              #sqrt(ISD.iupred2) +
                              #Clustering.Six +
-                             #WaltzBinary +
+                             #TangoAAsInAPRs +
                              #net.charge +
                              #charge.pos +
                              #charge.neg +
-                             pI +
+                             #pI +
                              #GC.avg +
                              (1|Cluster) + 0,
                            weights = Weight.nb.5.7)
@@ -93,7 +93,7 @@ by_cluster <-
             Trp = wtd.mean(Trp, weights = Weight.nb.5.7), Tyr = wtd.mean(Tyr, weights = Weight.nb.5.7),
             Thr = wtd.mean(Thr, weights = Weight.nb.5.7), Cys = wtd.mean(Cys, weights = Weight.nb.5.7),
             Clustering.Six = wtd.mean(Clustering.Six, weights = Weight.nb.5.7),
-            WaltzBinary = wtd.mean(WaltzBinary, weights = Weight.nb.5.7),
+            TangoAAsInAPRs = wtd.mean(TangoAAsInAPRs, weights = Weight.nb.5.7),
             CamSol.avg = wtd.mean(CamSol.avg, weights = Weight.nb.5.7),
             charge.pos = wtd.mean(charge.pos, weights = Weight.nb.5.7), charge.neg = wtd.mean(charge.neg, weights = Weight.nb.5.7),
             net.charge = wtd.mean(net.charge, weights = Weight.nb.5.7), pI = wtd.mean(pI, weights = Weight.nb.5.7),
@@ -107,7 +107,7 @@ by_cluster <-
 #                   peptide.data[peptide.data$Cluster == i, "Weight.nb"])
 # }
 # by_cluster$fit.full.weighted <- rep(NA, length(by_cluster$CamSol.avg))
-# by_cluster$fit.aa.weighted <- rep(NA, length(by_cluster$WaltzBinary))
+# by_cluster$fit.aa.weighted <- rep(NA, length(by_cluster$TangoAAsInAPRs))
 # for (i in 1:length(by_cluster$Fitness.nb)) {
 #   by_cluster[by_cluster$Cluster == i, "fit.full.weighted"] <- 
 #     weighted.mean(predict(fitness.nb.full.lm,
@@ -159,7 +159,7 @@ flipped.aa.int <- -flipped.pred.aa.summary$coefficients[1,1] / flipped.pred.aa.s
 flipped.aa.beta <- 1/flipped.pred.aa.summary$coefficients[2,1]
 
 # Plotting part A.
-todays.date <- "5-14-20"
+todays.date <- "5-23-20"
 cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 png(filename = paste("Scripts/Figures/fitness_pred_full_", todays.date, ".png", sep = ""),
     height = 500, width = 500)
@@ -211,3 +211,27 @@ ggplot(data = by_cluster,
   theme(legend.position = "none")
 dev.off()
 
+# Zoomed in version.
+png(filename = paste("Scripts/Figures/fitness_pred_aacomp_zoomout_", todays.date, ".png", sep = ""),
+    height = 500, width = 500)
+ggplot(data = by_cluster,
+       aes(y = Fitness.nb,
+           x = fit.aa,
+           size = Weight.nb.sum,
+           weight = Weight.nb.sum)
+) +
+  geom_point(alpha = 0.4) +
+  geom_abline(slope = 1, intercept = 0, color = cbbPalette[2], size = 1.5) +
+  #stat_function(fun = function(x)pred.aa.summary$coefficients[1,1] + pred.aa.summary$coefficients[2,1]*x,
+  #              geom = "line", color = cbbPalette[6], size = 1.5) +
+  geom_smooth(method = "lm", color = cbbPalette[6], size = 1.5, se = F) +
+  #geom_smooth(method = "loess", color = cbbPalette[2], size = 1.5, se = F) +
+  ylab("Fitness") +
+  xlab("Predicted fitness") +
+  #scale_y_continuous(breaks = sqrt(c(0.2, 0.5, 1, 2, 5)),
+  #                   labels = c(0.2, 0.5, 1, 2, 5)) +
+  #scale_x_continuous(breaks = sqrt(c(0.2, 0.5, 1)),
+  #                   labels = c(0.2, 0.5, 1)) +
+  theme_bw(base_size = 28) +
+  theme(legend.position = "none")
+dev.off()

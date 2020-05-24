@@ -13,7 +13,7 @@ getmode <- function(v) {
 }
 
 # Today's date
-todays.date <- "5-20-2020"
+todays.date <- "5-23-2020"
 
 # Load peptide data.
 peptide.data <- read.table(file = "Scripts/RandomPeptides/Data/supplemental_table_1.tsv", header = T, stringsAsFactors = F)
@@ -358,6 +358,90 @@ ggplot(
                 geom = "line", color = cbbPalette[6], size = 1.5) +
   #stat_function(fun = function(x)charge.summary$coefficients[1,1] + charge.summary$coefficients[3,1]*x,
   #              geom = "line", color = cbbPalette[6], size = 1.5, xlim = c(-6, 0)) +
+  theme_bw(base_size = 28) +
+  theme(legend.position = "none")
+dev.off()
+
+# Zoomed out plots.
+png(filename = paste("Scripts/Figures/fitness_tango_zoomout_", todays.date, ".png", sep = ""),
+    height = 500, width = 500)
+ggplot(
+  data = by_cluster,
+  aes(
+    y = Fitness.nb,
+    x = round(TangoAAsInAPRs),
+    size = Weight.nb.sum,
+    weight = Weight.nb.sum
+  )
+) +
+  geom_point(alpha = 0.4) +
+  #stat_summary(fun.data = boxplot.quantiles, geom = "boxplot") +
+  stat_function(fun = function(x)tango.summary$coefficients[1,1]+tango.summary$coefficients[2,1]*x,
+                geom = "line", color = cbbPalette[6], size = 1.5) +
+  #geom_smooth(method = "loess") +
+  #geom_smooth(method = "lm") +
+  ylab("Fitness") +
+  xlab("AAs in Tango predicted APRs") +
+  #scale_y_continuous(limits = c(0, 2)) +
+  #scale_y_continuous(breaks = log(c(0.05, 0.5, 1, 2)),
+  #                   labels = c(0.05, 0.5, 1, 2),
+  #                   limits = log(c(0.04, 6))) +
+  #scale_x_continuous(breaks = c(0,1),
+  #                   labels = c("None", "1+")) +
+  theme_bw(base_size = 28) +
+  theme(legend.position = "none")
+dev.off()
+
+png(filename = paste("Scripts/Figures/fitness_camsol_zoomout_", todays.date, ".png", sep = ""),
+    height = 500, width = 500)
+ggplot(
+  data = by_cluster,
+  aes(
+    y = Fitness.nb,
+    x = CamSol.avg,
+    size = Weight.nb.sum,
+    weight = Weight.nb.sum
+  )
+) +
+  geom_point(alpha = 0.4) +
+  #geom_abline(slope = 1, intercept = 0, color = cbbPalette[2], size = 1.5) +
+  stat_function(fun = function(x)camsol.summary$coefficients[1,1]+camsol.summary$coefficients[2,1]*x,
+                geom = "line", color = cbbPalette[6], size = 1.5) +
+  #geom_smooth(method = "loess") +
+  ylab("Fitness") +
+  xlab("CamSol") +
+  #scale_y_continuous(breaks = log(c(0.05, 0.5, 1, 2)),
+  #                   labels = c(0.05, 0.5, 1, 2),
+  #                   limits = log(c(0.04, 6))) +
+  #scale_x_continuous(breaks = log(c(0.2, 0.5, 1)),
+  #                   labels = c(0.2, 0.5, 1)) +
+  theme_bw(base_size = 28) +
+  theme(legend.position = "none")
+dev.off()
+
+png(filename = paste("Scripts/Figures/fitness_isd_zoomout_", todays.date, ".png", sep = ""),
+    height = 500, width = 500)
+ggplot(
+  data = by_cluster,
+  aes(
+    y = Fitness.nb,
+    x = sqrt(ISD.iupred2),
+    size = Weight.nb.sum,
+    weight = Weight.nb.sum
+  )
+) +
+  geom_point(alpha = 0.4) +
+  stat_function(fun = function(x)isd.summary$coefficients[1,1]+isd.summary$coefficients[2,1]*x,
+                geom = "line", color = cbbPalette[6], size = 1.5) +
+  #geom_smooth(method = "loess") +
+  ylab("Fitness") +
+  #geom_abline(slope = 1, intercept = 0, color = cbbPalette[2], size = 1.5) +
+  xlab("ISD") +
+  #scale_y_continuous(breaks = log(c(0.05, 0.5, 1, 2)),
+  #                   labels = c(0.05, 0.5, 1, 2),
+  #                   limits = log(c(0.04, 6))) +
+  scale_x_continuous(breaks = sqrt(c(0.04, 0.16, 0.36, 0.64)),
+                     labels = c(0.04, 0.16, 0.36, 0.64)) +
   theme_bw(base_size = 28) +
   theme(legend.position = "none")
 dev.off()
