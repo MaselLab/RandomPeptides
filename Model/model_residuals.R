@@ -79,6 +79,7 @@ by_cluster <-
   group_by(Cluster) %>%
   summarise(Weight.nb.sum = sum(Weight.nb.5.7), ISD.iupred2 = wtd.mean(ISD.iupred2, weights = Weight.nb.5.7),
             Fitness.nb = wtd.mean(Fitness.nb, weights = Weight.nb.5.7), Weight.nb.log.sum = sum(Weight.nb.log),
+            Fitness.nb.log = wtd.mean(log(Fitness.nb), weights = Weight.nb.log),
             Leu = wtd.mean(Leu, weights = Weight.nb.5.7), Phe = wtd.mean(Phe, weights = Weight.nb.5.7),
             Met = wtd.mean(Met, weights = Weight.nb.5.7), Val = wtd.mean(Val, weights = Weight.nb.5.7),
             Ile = wtd.mean(Ile, weights = Weight.nb.5.7), Lys = wtd.mean(Lys, weights = Weight.nb.5.7),
@@ -97,6 +98,9 @@ by_cluster <-
             charge.pos = wtd.mean(charge.pos, weights = Weight.nb.5.7), charge.neg = wtd.mean(charge.neg, weights = Weight.nb.5.7),
             full.predict = wtd.mean(full.predict, weights = Weight.nb.5.7)
   )
+
+max.weight.cluster <- peptide.data %>% group_by(Cluster) %>% filter(Weight.nb.5.7 == max(Weight.nb.5.7))
+max.logweight.cluster <- peptide.data %>% group_by(Cluster) %>% filter(Weight.nb.log == max(Weight.nb.log))
 
 # Assessing linearity of dependent and independent variables.
 ggplot(data = by_cluster,
@@ -268,7 +272,7 @@ ggplot(data = peptide.data,
   geom_point()
 
 # Looking at weight vs fitness plots
-todays.date <- "5-23-2020"
+todays.date <- "5-24-2020"
 
 png(filename = paste("Scripts/Figures/logfit_normweights_", todays.date, ".png", sep = ""))
 ggplot(data = peptide.data,
@@ -276,27 +280,27 @@ ggplot(data = peptide.data,
   geom_point() +
   geom_smooth() +
   xlab("log(Fitness)") +
-  ylab("Original weights") +
+  ylab("Weight") +
   theme_bw(base_size = 28)
 dev.off()
 
 png(filename = paste("Scripts/Figures/logfit_logweights_", todays.date, ".png", sep = ""))
-ggplot(data = peptide.data,
+ggplot(data = max.logweight.cluster,
        aes(y = Weight.nb.log, x = log(Fitness.nb))) +
   geom_point() +
   geom_smooth() +
   xlab("log(Fitness)") +
-  ylab("Log weights") +
+  ylab("Weight") +
   theme_bw(base_size = 28)
 dev.off()
 
 png(filename = paste("Scripts/Figures/normfit_normweights_", todays.date, ".png", sep = ""))
-ggplot(data = by_cluster,
-       aes(y = Weight.nb.sum, x = Fitness.nb)) +
+ggplot(data = max.weight.cluster,
+       aes(y = Weight.nb.5.7, x = Fitness.nb)) +
   geom_point() +
   geom_smooth() +
   xlab("Fitness") +
-  ylab("Weight (1/var)") +
+  ylab("Weight") +
   theme_bw(base_size = 28)
 dev.off()
 

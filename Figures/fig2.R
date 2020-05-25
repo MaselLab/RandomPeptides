@@ -159,10 +159,10 @@ flipped.aa.int <- -flipped.pred.aa.summary$coefficients[1,1] / flipped.pred.aa.s
 flipped.aa.beta <- 1/flipped.pred.aa.summary$coefficients[2,1]
 
 # Plotting part A.
-todays.date <- "5-23-20"
+todays.date <- "5-24-20"
 cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 png(filename = paste("Scripts/Figures/fitness_pred_full_", todays.date, ".png", sep = ""),
-    height = 500, width = 500)
+    height = 490, width = 490)
 ggplot(data = by_cluster,
        aes(x = fit.full,
            y = Fitness.nb,
@@ -187,7 +187,7 @@ dev.off()
 
 # Plotting part B.
 png(filename = paste("Scripts/Figures/fitness_pred_aacomp_", todays.date, ".png", sep = ""),
-    height = 500, width = 500)
+    height = 490, width = 490)
 ggplot(data = by_cluster,
        aes(y = Fitness.nb,
            x = fit.aa,
@@ -195,13 +195,13 @@ ggplot(data = by_cluster,
            weight = Weight.nb.sum)
 ) +
   geom_point(alpha = 0.4) +
-  geom_abline(slope = 1, intercept = 0, color = cbbPalette[2], size = 1.5) +
+  #geom_abline(slope = 1, intercept = 0, color = cbbPalette[2], size = 1.5) +
   #stat_function(fun = function(x)pred.aa.summary$coefficients[1,1] + pred.aa.summary$coefficients[2,1]*x,
   #              geom = "line", color = cbbPalette[6], size = 1.5) +
   geom_smooth(method = "lm", color = cbbPalette[6], size = 1.5, se = F) +
   #geom_smooth(method = "loess", color = cbbPalette[2], size = 1.5, se = F) +
   ylab("Fitness") +
-  xlab("Predicted fitness") +
+  xlab("AA-predicted fitness") +
   scale_y_continuous(limits = c(0, 2)) +
   #scale_y_continuous(breaks = sqrt(c(0.2, 0.5, 1, 2, 5)),
   #                   labels = c(0.2, 0.5, 1, 2, 5)) +
@@ -211,9 +211,9 @@ ggplot(data = by_cluster,
   theme(legend.position = "none")
 dev.off()
 
-# Zoomed in version.
+# Zoomed out version.
 png(filename = paste("Scripts/Figures/fitness_pred_aacomp_zoomout_", todays.date, ".png", sep = ""),
-    height = 500, width = 500)
+    height = 490, width = 490)
 ggplot(data = by_cluster,
        aes(y = Fitness.nb,
            x = fit.aa,
@@ -221,13 +221,13 @@ ggplot(data = by_cluster,
            weight = Weight.nb.sum)
 ) +
   geom_point(alpha = 0.4) +
-  geom_abline(slope = 1, intercept = 0, color = cbbPalette[2], size = 1.5) +
+  #geom_abline(slope = 1, intercept = 0, color = cbbPalette[2], size = 1.5) +
   #stat_function(fun = function(x)pred.aa.summary$coefficients[1,1] + pred.aa.summary$coefficients[2,1]*x,
   #              geom = "line", color = cbbPalette[6], size = 1.5) +
   geom_smooth(method = "lm", color = cbbPalette[6], size = 1.5, se = F) +
   #geom_smooth(method = "loess", color = cbbPalette[2], size = 1.5, se = F) +
   ylab("Fitness") +
-  xlab("Predicted fitness") +
+  xlab("AA-predicted fitness") +
   #scale_y_continuous(breaks = sqrt(c(0.2, 0.5, 1, 2, 5)),
   #                   labels = c(0.2, 0.5, 1, 2, 5)) +
   #scale_x_continuous(breaks = sqrt(c(0.2, 0.5, 1)),

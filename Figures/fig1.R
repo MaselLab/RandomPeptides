@@ -13,7 +13,7 @@ getmode <- function(v) {
 }
 
 # Today's date
-todays.date <- "5-23-2020"
+todays.date <- "5-24-2020"
 
 # Load peptide data.
 peptide.data <- read.table(file = "Scripts/RandomPeptides/Data/supplemental_table_1.tsv", header = T, stringsAsFactors = F)
@@ -213,7 +213,7 @@ summary(charge.fit.lm)
 # Making the plots and exporting.
 cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 png(filename = paste("Scripts/Figures/fitness_isd_", todays.date, ".png", sep = ""),
-    height = 500, width = 500)
+    height = 490, width = 490)
 ggplot(
   data = by_cluster,
   aes(
@@ -241,7 +241,7 @@ ggplot(
 dev.off()    
 
 png(filename = paste("Scripts/Figures/fitness_clustering_", todays.date, ".png", sep = ""),
-    height = 500, width = 500)
+    height = 490, width = 490)
 ggplot(
   data = by_cluster,
   aes(
@@ -269,7 +269,7 @@ ggplot(
 dev.off()
 
 png(filename = paste("Scripts/Figures/fitness_camsol_", todays.date, ".png", sep = ""),
-    height = 500, width = 500)
+    height = 490, width = 490)
 ggplot(
   data = by_cluster,
   aes(
@@ -304,7 +304,7 @@ boxplot.quantiles <- function(x){
 }
 
 png(filename = paste("Scripts/Figures/fitness_tango_", todays.date, ".png", sep = ""),
-    height = 500, width = 500)
+    height = 490, width = 490)
 ggplot(
   data = by_cluster,
   aes(
@@ -321,7 +321,7 @@ ggplot(
   #geom_smooth(method = "loess") +
   #geom_smooth(method = "lm") +
   ylab("Fitness") +
-  xlab("AAs in Tango predicted APRs") +
+  xlab("#Aggregation-prone AAs (Tango)") +
   scale_y_continuous(limits = c(0, 2)) +
   #scale_y_continuous(breaks = log(c(0.05, 0.5, 1, 2)),
   #                   labels = c(0.05, 0.5, 1, 2),
@@ -334,7 +334,7 @@ dev.off()
 
 # Plot net charge against fitness.
 png(filename = paste("Scripts/Figures/fitness_charge_", todays.date, ".png", sep = ""),
-                     height = 500, width = 500)
+                     height = 490, width = 490)
 ggplot(
   data = by_cluster,
   aes(
@@ -364,7 +364,7 @@ dev.off()
 
 # Zoomed out plots.
 png(filename = paste("Scripts/Figures/fitness_tango_zoomout_", todays.date, ".png", sep = ""),
-    height = 500, width = 500)
+    height = 490, width = 490)
 ggplot(
   data = by_cluster,
   aes(
@@ -381,7 +381,7 @@ ggplot(
   #geom_smooth(method = "loess") +
   #geom_smooth(method = "lm") +
   ylab("Fitness") +
-  xlab("AAs in Tango predicted APRs") +
+  xlab("#Aggregation-prone AAs (Tango)") +
   #scale_y_continuous(limits = c(0, 2)) +
   #scale_y_continuous(breaks = log(c(0.05, 0.5, 1, 2)),
   #                   labels = c(0.05, 0.5, 1, 2),
@@ -393,7 +393,7 @@ ggplot(
 dev.off()
 
 png(filename = paste("Scripts/Figures/fitness_camsol_zoomout_", todays.date, ".png", sep = ""),
-    height = 500, width = 500)
+    height = 490, width = 490)
 ggplot(
   data = by_cluster,
   aes(
@@ -420,7 +420,7 @@ ggplot(
 dev.off()
 
 png(filename = paste("Scripts/Figures/fitness_isd_zoomout_", todays.date, ".png", sep = ""),
-    height = 500, width = 500)
+    height = 490, width = 490)
 ggplot(
   data = by_cluster,
   aes(
