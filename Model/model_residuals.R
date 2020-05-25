@@ -173,12 +173,26 @@ ggplot(data = by_cluster,
   geom_smooth(method = "lm", color = "red") +
   theme(legend.position = "none")
 
+png(filename = "Scripts/Figures/trp_vs_fitness.png")
 ggplot(data = by_cluster,
        aes(x = Trp, y = Fitness.nb, size = Weight.nb.sum, weight = Weight.nb.sum)) +
   geom_point(alpha = 0.4) +
-  geom_smooth(method = "loess") +
+  geom_smooth(method = "gam") +
   geom_smooth(method = "lm", color = "red") +
+  ylab("Fitness") +
+  xlab("Tryptophan residues") +
+  theme_bw(base_size = 28) +
   theme(legend.position = "none")
+dev.off()
+
+png(filename = "Scripts/Figures/trp_histogram.png")
+ggplot(data = by_cluster,
+       aes(x = Trp)) +
+  geom_histogram(bins = 7) +
+  theme_bw(base_size = 28)
+dev.off()
+
+wtd.mean(by_cluster$Trp, weights = by_cluster$Weight.nb.sum)
 
 ggplot(data = by_cluster,
        aes(x = His, y = Fitness.nb, size = Weight.nb.sum, weight = Weight.nb.sum)) +
