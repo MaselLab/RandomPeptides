@@ -11,6 +11,12 @@ peptide.data <- read.table(file = "Scripts/RandomPeptides/Data/supplemental_tabl
 peptide.data
 
 # Comparing GC content as a predictor to amino acid composition.
+peptide.mixed.intercept <- lmer(
+  data = peptide.data,
+  formula = Fitness.nb ~ 1 + (1|Cluster),
+  weights = Weight.nb.5.7
+)
+
 peptide.mixed.gc <- lmer(
   data = peptide.data[!is.na(peptide.data$GC.avg),],
   formula = Fitness.nb ~ GC.avg +
@@ -54,6 +60,18 @@ peptide.mixed.nb.aaonly.lm <- lmer(
 )
 summary(peptide.mixed.nb.aaonly.lm)
 drop1(peptide.mixed.nb.aaonly.lm, test = "Chisq")
+anova(peptide.mixed.aaonly.gc, peptide.mixed.nb.aaonly.lm, test = "LRT")
+#anova(peptide.mixed.nb.aaonly.lm, peptide.mixed.intercept, test = "LRT")
+
+# Checking lmer starting values.
+aaonly.lm.ff <- lFormula(data = peptide.data[!is.na(peptide.data$GC.avg),], Fitness.nb ~
+                           Leu + Pro + Met + Trp + Ala +
+                           Val + Phe + Ile + Gly + Ser +
+                           Thr + Cys + Asn + Gln + Tyr +
+                           His + Asp + Glu + Lys + Arg +
+                           (1|Cluster) +
+                           0)
+ifelse(aaonly.lm.ff$reTrms$lower == 0, 1, 0)
 
 # Do single amino acids improve a GC content only model?
 peptide.mixed.aa.gc <- lmer(

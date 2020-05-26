@@ -227,6 +227,7 @@ ggplot(
   stat_function(fun = function(x)isd.summary$coefficients[1,1]+isd.summary$coefficients[2,1]*x,
                 geom = "line", color = cbbPalette[6], size = 1.5) +
   #geom_smooth(method = "loess") +
+  #geom_smooth(method = "lm") +
   ylab("Fitness") +
   #geom_abline(slope = 1, intercept = 0, color = cbbPalette[2], size = 1.5) +
   xlab("ISD") +

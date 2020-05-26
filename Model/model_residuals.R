@@ -96,7 +96,8 @@ by_cluster <-
             ISD.delta = wtd.mean(ISD.delta, weights = Weight.nb.5.7),
             net.charge = wtd.mean(net.charge, weights = Weight.nb.5.7),
             charge.pos = wtd.mean(charge.pos, weights = Weight.nb.5.7), charge.neg = wtd.mean(charge.neg, weights = Weight.nb.5.7),
-            full.predict = wtd.mean(full.predict, weights = Weight.nb.5.7)
+            full.predict = wtd.mean(full.predict, weights = Weight.nb.5.7),
+            Trp.unweighted = mean(Trp), Arg.unweighted = mean(Arg)
   )
 
 max.weight.cluster <- peptide.data %>% group_by(Cluster) %>% filter(Weight.nb.5.7 == max(Weight.nb.5.7))
@@ -184,6 +185,28 @@ ggplot(data = by_cluster,
   theme_bw(base_size = 28) +
   theme(legend.position = "none")
 dev.off()
+
+png(filename = "Scripts/Figures/arg_vs_trp.png", height = 600, width = 600)
+ggplot(data = by_cluster,
+       aes(x = Trp.unweighted, y = Arg.unweighted)) +
+  geom_jitter(width = 0.15, height = 0.15) +
+  geom_smooth(method = "loess") +
+  ylab("#arg") +
+  xlab("#trp") +
+  theme_bw(base_size = 28)
+dev.off()
+
+png(filename = "Scripts/Figures/trp_vs_arg.png", height = 600, width = 600)
+ggplot(data = by_cluster,
+       aes(x = Arg.unweighted, y = Trp.unweighted)) +
+  geom_jitter(width = 0.15, height = 0.15) +
+  geom_smooth(method = "loess") +
+  xlab("#arg") +
+  ylab("#trp") +
+  theme_bw(base_size = 28)
+dev.off()
+
+#cor.test(by_cluster$Trp, by_cluster$Arg, method = "spearman")
 
 png(filename = "Scripts/Figures/trp_histogram.png")
 ggplot(data = by_cluster,
