@@ -6,24 +6,24 @@ library(lme4)
 library(Hmisc)
 
 # Load data.
-peptide.data <- read.table(file = "Data/peptide_data_clusters_2-14-20.tsv", header = T, stringsAsFactors = F)
+peptide.data <- read.table(file = "Scripts/RandomPeptides/Data/supplemental_table_1.tsv", header = T, stringsAsFactors = F)
 
 # Date of file generation.
-today.date <- "3-11-2020"
+today.date <- "5-20-2020"
 
 # Calculating the marginal effects.
 # Amino acid frequency only model.
 peptide.mixed.nb.log.aaonly.lm <-
   lmer(
     data = peptide.data,
-    formula = log2(Fitness.nb) ~
+    formula = Fitness.nb ~
       Leu + Pro + Met + Trp + Ala +
       Val + Phe + Ile + Gly + Ser +
       Thr + Cys + Asn + Gln + Tyr +
       His + Asp + Glu + Lys + Arg +
       (1|Cluster) +
       0,
-    weights = Weight.nb
+    weights = Weight.nb.5.7
   )
 log.aaonly.summary <- summary(peptide.mixed.nb.log.aaonly.lm)
 log.aaonly.summary
@@ -120,44 +120,24 @@ custom.contrasts <- function(weight.df, linear.model, aa.col = "AminoAcid", weig
 by_cluster <-
   peptide.data %>% 
   group_by(Cluster) %>%
-  summarise(Weight.nb.sum = sum(Weight.nb), ISD = wtd.mean(ISD, weights = Weight.nb),
-            ISD.iupred2 = wtd.mean(ISD.iupred2, weights = Weight.nb), Fitness.nb = wtd.mean(Fitness.nb, weights = Weight.nb),
-            Leu = wtd.mean(Leu, weights = Weight.nb), Phe = wtd.mean(Phe, weights = Weight.nb),
-            Met = wtd.mean(Met, weights = Weight.nb), Val = wtd.mean(Val, weights = Weight.nb),
-            Ile = wtd.mean(Ile, weights = Weight.nb), Lys = wtd.mean(Lys, weights = Weight.nb),
-            His = wtd.mean(His, weights = Weight.nb), Arg = wtd.mean(Arg, weights = Weight.nb),
-            Glu = wtd.mean(Glu, weights = Weight.nb), Asp = wtd.mean(Asp, weights = Weight.nb),
-            Gln = wtd.mean(Gln, weights = Weight.nb), Asn = wtd.mean(Asn, weights = Weight.nb),
-            Gly = wtd.mean(Gly, weights = Weight.nb), Ala = wtd.mean(Ala, weights = Weight.nb),
-            Pro = wtd.mean(Pro, weights = Weight.nb), Ser = wtd.mean(Ser, weights = Weight.nb),
-            Trp = wtd.mean(Trp, weights = Weight.nb), Tyr = wtd.mean(Tyr, weights = Weight.nb),
-            Thr = wtd.mean(Thr, weights = Weight.nb), Cys = wtd.mean(Cys, weights = Weight.nb),
-            Leu.freq = wtd.mean(Leu.freq, weights = Weight.nb), Phe.freq = wtd.mean(Phe.freq, weights = Weight.nb),
-            Met.freq = wtd.mean(Met.freq, weights = Weight.nb), Val.freq = wtd.mean(Val.freq, weights = Weight.nb),
-            Ile.freq = wtd.mean(Ile.freq, weights = Weight.nb), Lys.freq = wtd.mean(Lys.freq, weights = Weight.nb),
-            His.freq = wtd.mean(His.freq, weights = Weight.nb), Arg.freq = wtd.mean(Arg.freq, weights = Weight.nb),
-            Glu.freq = wtd.mean(Glu.freq, weights = Weight.nb), Asp.freq = wtd.mean(Asp.freq, weights = Weight.nb),
-            Gln.freq = wtd.mean(Gln.freq, weights = Weight.nb), Asn.freq = wtd.mean(Asn.freq, weights = Weight.nb),
-            Gly.freq = wtd.mean(Gly.freq, weights = Weight.nb), Ala.freq = wtd.mean(Ala.freq, weights = Weight.nb),
-            Pro.freq = wtd.mean(Pro.freq, weights = Weight.nb), Ser.freq = wtd.mean(Ser.freq, weights = Weight.nb),
-            Trp.freq = wtd.mean(Trp.freq, weights = Weight.nb), Tyr.freq = wtd.mean(Tyr.freq, weights = Weight.nb),
-            Thr.freq = wtd.mean(Thr.freq, weights = Weight.nb), Cys.freq = wtd.mean(Cys.freq, weights = Weight.nb),
-            Clustering.Six = wtd.mean(Clustering.Six, weights = Weight.nb),
-            WaltzBinary = wtd.mean(WaltzBinary, weights = Weight.nb),
-            WaltzAAsInAPRs = wtd.mean(WaltzAAsInAPRs, weights = Weight.nb),
-            Waltz.delta = wtd.mean(Waltz.delta, weights = Weight.nb),
-            TangoBinary = wtd.mean(TangoBinary, weights = Weight.nb),
-            TangoAAsInAPRs = wtd.mean(TangoAAsInAPRs, weights = Weight.nb),
-            Tango.delta = wtd.mean(Tango.delta, weights = Weight.nb),
-            Cys.squared = wtd.mean(Cys.squared, weights = Weight.nb),
-            CamSol.avg = wtd.mean(CamSol.avg, weights = Weight.nb),
-            AnchorAvg = wtd.mean(AnchorAvg, weights = Weight.nb),
-            ISD.delta = wtd.mean(ISD.delta, weights = Weight.nb),
-            mean.run.norm = wtd.mean(mean.run.norm, weights = Weight.nb),
-            max.run.length = wtd.mean(max.run.length, weights = Weight.nb),
-            net.charge = wtd.mean(net.charge, weights = Weight.nb),
-            pI = wtd.mean(pI, weights = Weight.nb), pI.ecoli = wtd.mean(pI.ecoli, weights = Weight.nb),
-            charge.pos = wtd.mean(charge.pos, weights = Weight.nb), charge.neg = wtd.mean(charge.neg)
+  summarise(Weight.nb.sum = sum(Weight.nb.5.7), 
+            ISD.iupred2 = wtd.mean(ISD.iupred2, weights = Weight.nb.5.7), Fitness.nb = wtd.mean(Fitness.nb, weights = Weight.nb.5.7),
+            Leu = wtd.mean(Leu, weights = Weight.nb.5.7), Phe = wtd.mean(Phe, weights = Weight.nb.5.7),
+            Met = wtd.mean(Met, weights = Weight.nb.5.7), Val = wtd.mean(Val, weights = Weight.nb.5.7),
+            Ile = wtd.mean(Ile, weights = Weight.nb.5.7), Lys = wtd.mean(Lys, weights = Weight.nb.5.7),
+            His = wtd.mean(His, weights = Weight.nb.5.7), Arg = wtd.mean(Arg, weights = Weight.nb.5.7),
+            Glu = wtd.mean(Glu, weights = Weight.nb.5.7), Asp = wtd.mean(Asp, weights = Weight.nb.5.7),
+            Gln = wtd.mean(Gln, weights = Weight.nb.5.7), Asn = wtd.mean(Asn, weights = Weight.nb.5.7),
+            Gly = wtd.mean(Gly, weights = Weight.nb.5.7), Ala = wtd.mean(Ala, weights = Weight.nb.5.7),
+            Pro = wtd.mean(Pro, weights = Weight.nb.5.7), Ser = wtd.mean(Ser, weights = Weight.nb.5.7),
+            Trp = wtd.mean(Trp, weights = Weight.nb.5.7), Tyr = wtd.mean(Tyr, weights = Weight.nb.5.7),
+            Thr = wtd.mean(Thr, weights = Weight.nb.5.7), Cys = wtd.mean(Cys, weights = Weight.nb.5.7),
+            Clustering.Six = wtd.mean(Clustering.Six, weights = Weight.nb.5.7),
+            TangoAAsInAPRs = wtd.mean(TangoAAsInAPRs, weights = Weight.nb.5.7),
+            CamSol.avg = wtd.mean(CamSol.avg, weights = Weight.nb.5.7),
+            ISD.delta = wtd.mean(ISD.delta, weights = Weight.nb.5.7),
+            net.charge = wtd.mean(net.charge, weights = Weight.nb.5.7),
+            Trp.unweighted = mean(Trp), Arg.unweighted = mean(Arg)
   )
 
 # Calculating frequency from cluster.
@@ -197,8 +177,11 @@ as.list(aa.freqs.ordered[,"Count"])[[1]]
 marginals.clusters.log.nb.wmax <- custom.contrasts(aa.freqs.wmax, peptide.mixed.nb.log.aaonly.lm)
 marginals.clusters.log.nb.wmax
 
+# Sorting the table by ascending marginal effect.
+marginals.ordered <- arrange(marginals.clusters.log.nb.wmax, Mean)
+
 # Exporting marginal effects as a table.
-write_tsv(marginals.clusters.log.nb.wmax, path = "Data/supplemental_table_2.tsv")
+write_tsv(marginals.ordered, path = "Scripts/RandomPeptides/Data/supplemental_table_2.tsv")
 
 # Importing data for James et al.'s phylostratigraphy slopes.
 # Genes first.
@@ -233,6 +216,62 @@ marginals.clusters.log.nb.wmax
 # Merging the James et al. data frame and the marginal effects data frames.
 slopes.aa.props <- merge(slopes.aa.props, marginals.clusters.log.nb.wmax, by = "AA")
 slopes.aa.props
+
+# Looking at the errors to compare.
+slopes.aa.props[, c("AnimalYoungPfamError", "PlantYoungPfamError", "AncientPfamError")]
+
+# Adding size and amino acid cost.
+source(file = "Scripts/RandomPeptides/Metrics/aa_comp_metrics.R")
+properties.df <- tibble(
+  "OneLetter" = slopes.aa.props$OneLetter#,
+  # "Size" = c(88.6, 173.4, 114.1, 111.1, 108.5, 143.8, 138.4, 60.1, 153.2, 166.7,
+  #            166.7, 168.6, 162.9, 189.9, 112.7, 89.0, 116.1, 227.8, 193.6, 140.0)
+  # ,
+  # "Cost-Ecoli" = c(11.7, 27.3, 14.7, 12.7, 24.7, 16.3, 15.3, 11.7, 38.3, 32.3,
+  #                  27.3, 30.3, 34.3, 52.0, 20.3, 11.7, 18.7, 74.3, 50.0, 23.3),
+  # "RSA" = c(0.218, 0.361, 0.342, 0.366, 0.101, 0.364, 0.411, 0.269, 0.269, 0.125,
+  #           0.147, 0.446, 0.159, 0.136, 0.342, 0.278, 0.272, 0.163, 0.187, 0.143),
+  # "DisorderPropensity" = c(0.450, 0.394, 0.285, 0.407, 0.000, 0.665, 0.781, 0.437, 0.259, 0.090,
+  #                          0.195, 0.588, 0.291, 0.117, 1.000, 0.713, 0.401, 0.004, 0.113, 0.263)
+)
+properties.df
+properties.df$Size <- mean.metric.calculator(properties.df$OneLetter, metric = "volume")
+properties.df$CostEcoli <- mean.metric.calculator(properties.df$OneLetter, metric = "cost-ecoli")
+properties.df$RSA <- mean.metric.calculator(properties.df$OneLetter, metric = "RSA-hydrophilicity")
+properties.df$DisorderPropensity <- mean.metric.calculator(properties.df$OneLetter, metric = "disorder")
+properties.df$stickiness <- mean.metric.calculator(properties.df$OneLetter, metric = "stickiness")
+properties.df$weight <- mean.metric.calculator(properties.df$OneLetter, metric = "weight")
+properties.df$pI <- mean.metric.calculator(properties.df$OneLetter, metric = "pI")
+properties.df
+
+cor.test(properties.df$Size, properties.df$CostEcoli, method = "spearman")
+cor.test(properties.df$Size, properties.df$DisorderPropensity, method = "spearman")
+cor.test(properties.df$CostEcoli, properties.df$DisorderPropensity, method = "spearman")
+
+cor.test(properties.df$Size, properties.df$CostEcoli, method = "pearson")
+cor.test(properties.df$Size, properties.df$DisorderPropensity, method = "pearson")
+cor.test(properties.df$CostEcoli, properties.df$DisorderPropensity, method = "pearson")
+
+cov(properties.df[, -1])
+cor(properties.df[, -1], method = "pearson")
+cor(properties.df[, -1], method = "spearman")
+
+slopes.aa.props <- merge(slopes.aa.props, properties.df, by = "OneLetter")
+slopes.aa.props
+
+marginals.lm <- lm(
+  data = slopes.aa.props,
+  formula = MarginalLogNBWMax ~ Size + DisorderPropensity
+  #+ CostEcoli
+  #+ stickiness
+  #+ RSA
+  #+ weight
+  #+ pI
+  ,
+  weights = 1 / (MarginalLogNBWMaxErr^2)
+)
+summary(marginals.lm)
+drop1(marginals.lm, test = "Chisq")
 
 # Checking weighted correlations.
 # First, making a function for a weighted Pearson's correlation where both X and Y have their own
@@ -291,32 +330,156 @@ ancientpfam.cor <- custom.weighted.pearson(
 )
 ancientpfam.cor
 
-# And now checking phylostratigraphy slopes for full genes.
-##################################################################################
-# NOTE: THESE HAVE ERRORS! FOR SOME REASON THE PLANT SLOPES ARE THE SAME AS ANIMAL
-# NEED TO GET THE UPDATED SLOPES FROM JENNY
-##################################################################################
-animalgene.cor <- custom.weighted.pearson(
+# Adding carbons per amino acid side chain.
+carbons.df <- tibble(
+  "AA" = c("Ala", "Arg", "Asn", "Asp", "Cys",
+           "Gln", "Glu", "Gly", "His", "Ile",
+           "Leu", "Lys", "Met", "Phe", "Pro",
+           "Ser", "Thr", "Trp", "Tyr", "Val"),
+  "Carbons" = c(1, 4, 2, 2, 1, 3, 3, 0, 4, 4, 4, 4, 3, 7, 3, 1, 2, 9, 7, 3)
+)
+carbons.df
+
+slopes.aa.props <- merge(slopes.aa.props, carbons.df, by = "AA")
+slopes.aa.props
+
+properties.carbons.df <- merge(properties.df, slopes.aa.props[, c("OneLetter", "Carbons")], by = "OneLetter")
+properties.carbons.df
+
+# Checking how carbons correlate with other properties.
+cor(properties.carbons.df[, -1], method = "pearson")
+cor(properties.carbons.df[, -1], method = "spearman")
+
+# Adding in a variable for highly hydrophobic, where I, L, M, F, and V are considered highly hydrophobic.
+slopes.aa.props$hydrophobic <- ifelse(slopes.aa.props$OneLetter %in% c("I", "L", "M", "F", "V"), 1, 0)
+
+marginals.hydrophobic.lm <- lm(
+  data = slopes.aa.props,
+  formula = MarginalLogNBWMax ~ Size + DisorderPropensity + hydrophobic,
+  weights = 1 / (MarginalLogNBWMaxErr^2)
+)
+summary(marginals.hydrophobic.lm)
+drop1(marginals.hydrophobic.lm, test = "Chisq")
+
+# Adding hydrophobicity does not significantly improve the model, barely.
+anova(marginals.lm, marginals.hydrophobic.lm, test = "LRT")
+
+carbons.cor <- custom.weighted.pearson(
   x = slopes.aa.props$MarginalLogNBWMax,
   x.var = slopes.aa.props$MarginalLogNBWMaxErr,
-  y = slopes.aa.props$AnimalYoungGeneSlope,
-  y.var = slopes.aa.props$AnimalYoungGeneError
+  y = slopes.aa.props$Carbons,
+  y.var = rep(1, 20)
 )
-animalgene.cor
-plantgene.cor <- custom.weighted.pearson(
+carbons.cor
+
+size.cor <- custom.weighted.pearson(
   x = slopes.aa.props$MarginalLogNBWMax,
   x.var = slopes.aa.props$MarginalLogNBWMaxErr,
-  y = slopes.aa.props$PlantYoungGeneSlope,
-  y.var = slopes.aa.props$PlantYoungGeneError
+  y = slopes.aa.props$Size,
+  y.var = rep(1, 20)
 )
-plantgene.cor
-ancientgene.cor <- custom.weighted.pearson(
+size.cor
+
+cost.cor <- custom.weighted.pearson(
   x = slopes.aa.props$MarginalLogNBWMax,
   x.var = slopes.aa.props$MarginalLogNBWMaxErr,
-  y = slopes.aa.props$AncientGeneSlope,
-  y.var = slopes.aa.props$AncientGeneError
+  y = slopes.aa.props$CostEcoli,
+  y.var = rep(1, 20)
 )
-ancientgene.cor
+cost.cor
+
+rsa.cor <- custom.weighted.pearson(
+  x = slopes.aa.props$MarginalLogNBWMax,
+  x.var = slopes.aa.props$MarginalLogNBWMaxErr,
+  y = slopes.aa.props$RSA,
+  y.var = rep(1, 20)
+)
+rsa.cor
+
+disprop.cor <- custom.weighted.pearson(
+  x = slopes.aa.props$MarginalLogNBWMax,
+  x.var = slopes.aa.props$MarginalLogNBWMaxErr,
+  y = slopes.aa.props$DisorderPropensity,
+  y.var = rep(1, 20)
+)
+disprop.cor
+
+weight.cor <- custom.weighted.pearson(
+  x = slopes.aa.props$MarginalLogNBWMax,
+  x.var = slopes.aa.props$MarginalLogNBWMaxErr,
+  y = slopes.aa.props$weight,
+  y.var = rep(1, 20)
+)
+weight.cor
+
+stickiness.cor <- custom.weighted.pearson(
+  x = slopes.aa.props$MarginalLogNBWMax,
+  x.var = slopes.aa.props$MarginalLogNBWMaxErr,
+  y = slopes.aa.props$stickiness,
+  y.var = rep(1, 20)
+)
+stickiness.cor
+
+pI.cor <- custom.weighted.pearson(
+  x = slopes.aa.props$MarginalLogNBWMax,
+  x.var = slopes.aa.props$MarginalLogNBWMaxErr,
+  y = slopes.aa.props$pI,
+  y.var = rep(1, 20)
+)
+pI.cor
+
+# Also checking tryptophan vs arginine content.
+custom.weighted.pearson(
+  x = peptide.data$Trp,
+  x.var = sqrt(1 / peptide.data$Weight.nb.5.7),
+  y = peptide.data$Arg,
+  y.var = sqrt(1 / peptide.data$Weight.nb.5.7)
+)
+
+mean(by_cluster$Trp.unweighted)
+wtd.mean(by_cluster$Trp, weights = by_cluster$Weight.nb.sum)
+
+cor.test(by_cluster$Trp.unweighted, by_cluster$Arg.unweighted, method = "spearman")
+var(by_cluster$Trp.unweighted)
+var(by_cluster$Arg.unweighted)
+
+# Checking the mean and median fitness cost from Mehlhoff et al. (2020).
+mehlhoff.data <- read_tsv(file = "Data/MeanMedian_Fitness.txt")
+mehlhoff.data
+
+names(mehlhoff.data)
+names(mehlhoff.data)[1] <- "OneLetter"
+
+slopes.aa.props <- merge(slopes.aa.props, mehlhoff.data, by = "OneLetter")
+
+marginals.mehlhoff.lm <- lm(
+  data = slopes.aa.props,
+  formula = MarginalLogNBWMax ~ Size + DisorderPropensity + MeanFit,
+  weights = 1 / (MarginalLogNBWMaxErr^2)
+)
+summary(marginals.mehlhoff.lm)
+drop1(marginals.mehlhoff.lm, test = "Chisq")
+
+mehlhoff.mean.cor <- custom.weighted.pearson(
+  x = slopes.aa.props$MarginalLogNBWMax,
+  x.var = slopes.aa.props$MarginalLogNBWMaxErr,
+  y = slopes.aa.props$MeanFit,
+  y.var = rep(1, 20)
+)
+mehlhoff.mean.cor
+
+mehlhoff.median.cor <- custom.weighted.pearson(
+  x = slopes.aa.props$MarginalLogNBWMax,
+  x.var = slopes.aa.props$MarginalLogNBWMaxErr,
+  y = slopes.aa.props$MedianFit,
+  y.var = rep(1, 20)
+)
+mehlhoff.median.cor
+
+properties.carbons.df <- merge(properties.carbons.df, mehlhoff.data, by = "OneLetter")
+properties.carbons.df
+cor(properties.carbons.df[, -1])
+cor(properties.carbons.df[-c(2, 6, 13), -1], method = "spearman")
 
 # Making the figures.
 partB.name <- paste("Scripts/Figures/NonTransmembranePlantYoungPfam_MarginalLogNB_notrel_", today.date, ".png", sep = "")
@@ -330,14 +493,14 @@ ggplot(data = slopes.aa.props, aes(x = MarginalLogNBWMax, y = PlantYoungPfamSlop
   geom_errorbarh(aes(xmin=MarginalLogNBWMax - MarginalLogNBWMaxErr,
                      xmax=MarginalLogNBWMax + MarginalLogNBWMaxErr), size = 1) +
   ylab("\U0394% point change per BY") +
-  xlab("Effect on genotype freq / cycle\n(fold change)") +
-  scale_x_continuous(breaks = c(-0.2, -0.1, 0, 0.1),
-                     labels = round(2^c(-0.2, -0.1, 0, 0.1), digits = 2)) +
+  xlab("Effect on genotype freq / cycle") +
+  #scale_x_continuous(breaks = c(-0.2, -0.1, 0, 0.1),
+  #                   labels = round(2^c(-0.2, -0.1, 0, 0.1), digits = 2)) +
   scale_y_continuous(breaks = c(1e-5, 0, -1e-5, -2e-5, -3e-5),
                      limits = c(-3e-5, 1.8e-5),
                      labels = c("1%", "0%", "-1%", "-2%", "-3%")) +
   geom_text(aes(label = OneLetter), hjust = -0.2, vjust = -0.4, size = 9, color = "grey30") +
-  annotate("text", label = plant.cor.label, x = -0.12, y = -1.5e-5, size = 10,
+  annotate("text", label = plant.cor.label, x = -0.05, y = -1.5e-5, size = 10,
            parse = F) +
   theme_bw(base_size = 28) +
   theme(legend.position = "none")
@@ -354,14 +517,14 @@ ggplot(data = slopes.aa.props, aes(x = MarginalLogNBWMax, y = AnimalYoungPfamSlo
   geom_errorbarh(aes(xmin=MarginalLogNBWMax - MarginalLogNBWMaxErr,
                      xmax=MarginalLogNBWMax + MarginalLogNBWMaxErr), size = 1) +
   ylab("\U0394% point change per BY") +
-  xlab("Effect on genotype freq / cycle\n(fold change)") +
-  scale_x_continuous(breaks = c(-0.2, -0.1, 0, 0.1),
-                     labels = round(2^c(-0.2, -0.1, 0, 0.1), digits = 2)) +
+  xlab("Effect on genotype freq / cycle") +
+  #scale_x_continuous(breaks = c(-0.2, -0.1, 0, 0.1),
+  #                   labels = round(2^c(-0.2, -0.1, 0, 0.1), digits = 2)) +
   scale_y_continuous(breaks = c(1e-5, 0, -1e-5, -2e-5, -3e-5),
                      limits = c(-3e-5, 1.8e-5),
                      labels = c("1%", "0%", "-1%", "-2%", "-3%")) +
   geom_text(aes(label = OneLetter), hjust = -0.2, vjust = -0.4, size = 9, color = "grey30") +
-  annotate("text", label = animal.cor.label, x = -0.1, y = -1.5e-5, size = 10,
+  annotate("text", label = animal.cor.label, x = -0.05, y = -1.5e-5, size = 10,
            parse = F) +
   theme_bw(base_size = 28) +
   theme(legend.position = "none")
@@ -378,16 +541,114 @@ ggplot(data = slopes.aa.props, aes(x = MarginalLogNBWMax, y = AncientPfamSlope))
   geom_errorbarh(aes(xmin=MarginalLogNBWMax - MarginalLogNBWMaxErr,
                      xmax=MarginalLogNBWMax + MarginalLogNBWMaxErr), size = 1) +
   ylab("\U0394% point change per BY") +
-  xlab("Effect on genotype freq / cycle\n(fold change)") +
-  scale_x_continuous(breaks = c(-0.2, -0.1, 0, 0.1),
-                     labels = round(2^c(-0.2, -0.1, 0, 0.1), digits = 2)) +
+  xlab("Effect on genotype freq / cycle") +
+  #scale_x_continuous(breaks = c(-0.2, -0.1, 0, 0.1),
+  #                   labels = round(2^c(-0.2, -0.1, 0, 0.1), digits = 2)) +
   scale_y_continuous(breaks = c(1e-5, 0, -1e-5, -2e-5, -3e-5),
                      limits = c(-3e-5, 1.8e-5),
                      labels = c("1%", "0%", "-1%", "-2%", "-3%")) +
   geom_text(aes(label = OneLetter), hjust = -0.2, vjust = -0.4, size = 9, color = "grey30") +
-  annotate("text", label = ancient.cor.label, x = -0.1, y = -1.5e-5, size = 10,
+  annotate("text", label = ancient.cor.label, x = -0.05, y = -1.5e-5, size = 10,
            parse = F) +
   theme_bw(base_size = 28) +
   theme(legend.position = "none")
 dev.off()
 
+# Also checking a figure for marginals vs number of side chain carbons.
+carbons.name <- paste("Scripts/Figures/carbons_vs_marginals_", today.date, ".png", sep = "")
+carbons.cor.label <- paste("R =", signif(carbons.cor[1], 2), "p =", signif(carbons.cor[4], 1))
+png(filename = carbons.name, width = 600, height = 600)
+ggplot(data = slopes.aa.props, aes(x = MarginalLogNBWMax, y = Carbons)) +
+  geom_point(size = 4) +
+  #geom_errorbar(aes(ymin=AncientPfamSlope - AncientPfamError,
+  #                  ymax=AncientPfamSlope + AncientPfamError),
+  #              size = 1) +
+  geom_errorbarh(aes(xmin=MarginalLogNBWMax - MarginalLogNBWMaxErr,
+                     xmax=MarginalLogNBWMax + MarginalLogNBWMaxErr), size = 1) +
+  ylab("Side chain carbons") +
+  xlab("Effect on genotype freq / cycle") +
+  #scale_x_continuous(breaks = c(-0.2, -0.1, 0, 0.1),
+  #                   labels = round(2^c(-0.2, -0.1, 0, 0.1), digits = 2)) +
+  scale_y_continuous(breaks = c(0, 2, 4, 6, 8)) +
+  geom_text(aes(label = OneLetter), hjust = -0.2, vjust = -0.4, size = 9, color = "grey30") +
+  annotate("text", label = carbons.cor.label, x = -0.05, y = 8.5, size = 10,
+           parse = F) +
+  theme_bw(base_size = 28) +
+  theme(legend.position = "none")
+dev.off()
+
+Size.name <- paste("Scripts/Figures/Size_vs_marginals_", today.date, ".png", sep = "")
+Size.cor.label <- paste("R =", signif(size.cor[1], 2), "p =", signif(size.cor[4], 1))
+png(filename = Size.name, width = 600, height = 600)
+ggplot(data = slopes.aa.props, aes(y = MarginalLogNBWMax, x = Size)) +
+  geom_point(size = 4) +
+  geom_errorbar(aes(ymin=MarginalLogNBWMax - MarginalLogNBWMaxErr,
+                     ymax=MarginalLogNBWMax + MarginalLogNBWMaxErr), size = 1) +
+  xlab(paste("Volume ", "(", "\uc5\u00b3", ")", sep = "")) +
+  ylab("Effect on genotype freq / cycle") +
+  #scale_x_continuous(breaks = c(-0.2, -0.1, 0, 0.1),
+  #                   labels = round(2^c(-0.2, -0.1, 0, 0.1), digits = 2)) +
+  #scale_y_continuous(breaks = c(0, 2, 4, 6, 8)) +
+  geom_text(aes(label = OneLetter), hjust = -0.2, vjust = -0.4, size = 9, color = "grey30") +
+  annotate("text", label = Size.cor.label, y = -0.05, x = 125, size = 10,
+           parse = F) +
+  theme_bw(base_size = 28) +
+  theme(legend.position = "none")
+dev.off()
+
+cost.name <- paste("Scripts/Figures/cost_vs_marginals_", today.date, ".png", sep = "")
+cost.cor.label <- paste("R =", signif(cost.cor[1], 2), "p =", signif(cost.cor[4], 1))
+png(filename = cost.name, width = 600, height = 600)
+ggplot(data = slopes.aa.props, aes(y = MarginalLogNBWMax, x = CostEcoli)) +
+  geom_point(size = 4) +
+  #geom_errorbar(aes(ymin=AncientPfamSlope - AncientPfamError,
+  #                  ymax=AncientPfamSlope + AncientPfamError),
+  #              size = 1) +
+  geom_errorbar(aes(ymin=MarginalLogNBWMax - MarginalLogNBWMaxErr,
+                     ymax=MarginalLogNBWMax + MarginalLogNBWMaxErr), size = 1) +
+  xlab("Amino acid cost in E. coli") +
+  ylab("Effect on genotype freq / cycle") +
+  #scale_x_continuous(breaks = c(-0.2, -0.1, 0, 0.1),
+  #                   labels = round(2^c(-0.2, -0.1, 0, 0.1), digits = 2)) +
+  #scale_y_continuous(breaks = c(0, 2, 4, 6, 8)) +
+  geom_text(aes(label = OneLetter), hjust = -0.2, vjust = -0.4, size = 9, color = "grey30") +
+  annotate("text", label = cost.cor.label, y = -0.07, x = 55, size = 10,
+           parse = F) +
+  theme_bw(base_size = 28) +
+  theme(legend.position = "none")
+dev.off()
+
+disprop.name <- paste("Scripts/Figures/disprop_vs_marginals_", today.date, ".png", sep = "")
+disprop.cor.label <- paste("R =", signif(disprop.cor[1], 2), "p =", signif(disprop.cor[4], 1))
+png(filename = disprop.name, width = 600, height = 600)
+ggplot(data = slopes.aa.props, aes(y = MarginalLogNBWMax, x = DisorderPropensity, color = RSA)) +
+  geom_point(size = 4) +
+  #geom_errorbar(aes(ymin=AncientPfamSlope - AncientPfamError,
+  #                  ymax=AncientPfamSlope + AncientPfamError),
+  #              size = 1) +
+  geom_errorbar(aes(ymin=MarginalLogNBWMax - MarginalLogNBWMaxErr,
+                     ymax=MarginalLogNBWMax + MarginalLogNBWMaxErr), size = 1) +
+  xlab("Disorder propensity") +
+  ylab("Effect on genotype freq / cycle") +
+  #scale_x_continuous(breaks = c(-0.2, -0.1, 0, 0.1),
+  #                   labels = round(2^c(-0.2, -0.1, 0, 0.1), digits = 2)) +
+  #scale_y_continuous(breaks = c(0, 2, 4, 6, 8)) +
+  geom_text(aes(label = OneLetter), hjust = -0.2, vjust = -0.4, size = 9, color = "grey30") +
+  annotate("text", label = disprop.cor.label, y = -0.07, x = 0.5, size = 10,
+           parse = F) +
+  theme_bw(base_size = 28) +
+  theme(legend.position = c(0.905, 0.155), legend.background = element_rect(color = "black"))
+dev.off()
+
+# Checking marginals vs Mehlhoff et al.'s mean and median fitness.
+mehlhoff.mean.cor.label <- paste("R =", signif(mehlhoff.mean.cor[1], 2), "p =", signif(mehlhoff.mean.cor[4], 1))
+ggplot(data = slopes.aa.props, aes(y = MarginalLogNBWMax, x = (1 - MeanFit))) +
+  geom_point(size = 4) +
+  geom_errorbar(aes(ymin=MarginalLogNBWMax - MarginalLogNBWMaxErr,
+                    ymax=MarginalLogNBWMax + MarginalLogNBWMaxErr), size = 1) +
+  xlab("Fitness change") +
+  ylab("Effect on genotype freq / cycle") +
+  geom_text(aes(label = OneLetter), hjust = -0.2, vjust = -0.4, size = 9, color = "grey30") +
+  annotate("text", label = mehlhoff.mean.cor.label, y = -0.07, x = 0.055, size = 10,
+          parse = F) +
+  theme_bw(base_size = 28)
