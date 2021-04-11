@@ -47,6 +47,9 @@ peptide.data
 # summary(peptide.mixed.nb.freq.aaonly.lm)
 # drop1(peptide.mixed.nb.freq.aaonly.lm, test = "Chisq")
 
+# Set seed.
+set.seed(5588)
+
 # Non-freq models.
 peptide.mixed.nb.aaonly.lm <- lmer(
   data = peptide.data,
@@ -57,12 +60,12 @@ peptide.mixed.nb.aaonly.lm <- lmer(
     His + Asp + Glu + Lys + Arg +
     (1|Cluster) +
     0,
-  weights = Weight.nb
+  weights = Weight.nb.5.7
 )
-summary(peptide.mixed.nb.aaonly.lm)
+summary(peptie.mixed.nb.aaonly.lm)
 drop1(peptide.mixed.nb.aaonly.lm, test = "Chisq")
 
-peptide.mixed.nb.lm <- lmer(
+peptide.mixed.dnb.lm <- lmer(
   data = peptide.data,
   formula = Fitness.nb ~
     Leu + Pro + Met + Trp + Ala +
@@ -93,15 +96,15 @@ drop1(peptide.mixed.nb.predhel.lm, test = "Chisq")
 peptide.mixed.other.predictors.nb.lm <- lmer(
   data = peptide.data,
   formula = Fitness.nb ~
-    Leu + Pro + Met + Trp + Ala +
-    Val + Phe + Ile + Gly + Ser +
-    Thr + Cys + Asn + Gln + Tyr +
-    His + Asp + Glu + Lys + Arg +
-    #sqrt(ISD.iupred2) +
+    #Leu + Pro + Met + Trp + Ala +
+    #Val + Phe + Ile + Gly + Ser +
+    #Thr + Cys + Asn + Gln + Tyr +
+    #His + Asp + Glu + Lys + Arg +
+    sqrt(ISD.iupred2) +
     #pI +
     #CamSol.avg +
     #Clustering.Six +
-    TangoAAsInAPRs +
+    #TangoAAsInAPRs +
     #ISD.delta +
     #PredHel +
     #WaltzBinary +

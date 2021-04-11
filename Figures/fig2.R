@@ -38,6 +38,10 @@ peptide.data$fit.full <-
     re.form = NA
   )
 
+# Checking effect size.
+quantile(peptide.data$Fitness.nb)
+quantile(peptide.data$fit.full, probs = seq(0, 1, by = 0.1))
+
 # Predicted estimated fitness with predicted fitness from the full model.
 fitness.pred.fit.cluster.lm <- lmer(
   data = peptide.data,
@@ -75,6 +79,13 @@ fitness.pred.aa.fit.cluster.lm <- lmer(
 summary(fitness.pred.aa.fit.cluster.lm)
 #pred.aa.summary <- summary(fitness.pred.aa.fit.cluster.lm)
 #pred.aa.summary$coefficients
+
+intercept.only.lm <- lmer(
+  data = peptide.data,
+  formula = Fitness.nb ~ (1|Cluster),
+  weights = Weight.nb.5.7
+)
+anova(fitness.nb.aa.lm, intercept.only.lm, test = "lrt")
 
 # Combining the data by cluster for plotting.
 by_cluster <-

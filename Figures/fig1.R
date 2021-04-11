@@ -105,6 +105,14 @@ peptide.data$charge.fit <- predict(charge.lme,
                                    random.only = F,
                                    re.form = NA)
 
+# Looking at effect size.
+predict(isd.lme, newdata = data.frame("ISD.iupred2" = quantile(peptide.data$ISD.iupred2, probs = seq(0, 1, by = 0.1))),
+        type = "response", random.only = F, re.form = NA)
+predict(camsol.lme, newdata = data.frame("CamSol.avg" = quantile(peptide.data$CamSol.avg, probs = seq(0, 1, by = 0.1))),
+        type = "response", random.only = F, re.form = NA)
+predict(tango.lme, newdata = data.frame("TangoAAsInAPRs" = quantile(peptide.data$TangoAAsInAPRs, probs = seq(0, 1, by = 0.1))),
+        type = "response", random.only = F, re.form = NA)
+
 # Combining the data by cluster for plotting.
 by_cluster <-
   peptide.data %>% 
