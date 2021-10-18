@@ -63,6 +63,61 @@ drop1(peptide.mixed.nb.aaonly.lm, test = "Chisq")
 anova(peptide.mixed.aaonly.gc, peptide.mixed.nb.aaonly.lm, test = "LRT")
 #anova(peptide.mixed.nb.aaonly.lm, peptide.mixed.intercept, test = "LRT")
 
+# Checking LOGOCV.
+source(file = "Scripts/RandomPeptides/Metrics/logocv.R")
+
+wmse.gc <- logo_cv(
+  data.df = peptide.data,
+  predictors = "GC.avg",
+  dependent.variable = "Fitness.nb",
+  group.col = "Cluster",
+  weight.col = "Weight.nb.5.7",
+  re.form = NA, random.only = F, type = "response"
+)
+wmse.gc
+
+wmse.aa_plus_gc <- logo_cv(
+  data.df = peptide.data,
+  predictors = c("Leu", "Pro", "Met", "Trp", "Ala",
+                 "Val", "Phe", "Ile", "Gly", "Ser",
+                 "Thr", "Cys", "Asn", "Gln", "Tyr",
+                 "His", "Asp", "Glu", "Lys",
+                 "GC.avg"),
+  dependent.variable = "Fitness.nb",
+  group.col = "Cluster",
+  weight.col = "Weight.nb.5.7",
+  re.form = NA, random.only = F, type = "response"
+)
+wmse.aa_plus_gc
+
+# Calculating disorder propensity for a disorder + GC content model.
+# Calculating disorder propensity.
+source("~/MaselLab/RandomPeptides/Scripts/RandomPeptides/Metrics/aa_comp_metrics.R")
+peptide.data$disorder <- mean.metric.calculator(
+  aa.sequence = peptide.data$AASeq,
+  metric = "disorder"
+)
+
+# Checking the model.
+peptide.mixed.gc.disorder <- lmer(
+  data = peptide.data[!is.na(peptide.data$GC.avg),],
+  formula = Fitness.nb ~ GC.avg + disorder +
+    (1|Cluster),
+  weights = Weight.nb.5.7
+)
+summary(peptide.mixed.gc.disorder)
+drop1(peptide.mixed.gc.disorder, test = "Chisq")
+
+wmse.disprop_plus_gc <- logo_cv(
+  data.df = peptide.data,
+  predictors = c("disorder", "GC.avg"),
+  dependent.variable = "Fitness.nb",
+  group.col = "Cluster",
+  weight.col = "Weight.nb.5.7",
+  re.form = NA, random.only = F, type = "response"
+)
+wmse.disprop_plus_gc
+
 # Checking lmer starting values.
 aaonly.lm.ff <- lFormula(data = peptide.data[!is.na(peptide.data$GC.avg),], Fitness.nb ~
                            Leu + Pro + Met + Trp + Ala +
