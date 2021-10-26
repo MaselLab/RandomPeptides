@@ -9,7 +9,7 @@ Data: Contains the data generated from the present study. The data from Neme et 
 
 Figures: All the scripts used to generate the figures found in the paper can be found here.
 
-Metrics: Contains two scripts, one for predicting fitness using amino acid frequencies, and another for summarizing amino acid sequence properties using a variety of metrics.
+Metrics: Contains two scripts, one for predicting fitness using amino acid frequencies ("predict_fitness.R"), and another for summarizing amino acid sequence properties using a variety of metrics ("aa_comp_metrics.R").
 
 Model: Contains scripts related to generating and testing the regression models found in the paper.
 
