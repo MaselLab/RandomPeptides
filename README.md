@@ -1,7 +1,7 @@
 # RandomPeptides
 This repository contains scripts for the paper, "Random peptides rich in small and disorder promoting amino acids are less likely to be harmful", by Luke Kosinski, Nathan Aviles, Kevin Gomez, and Joanna Masel.
 
-The repository is organized into the several folders. For those interested in our fitness estimation technique, from which fitness can be estimated from counts while accounting for changing mean fitness, please see the "Predict fitness" folder and its sub-readme. For those interested in estimating fitness using amino acid frequencies, or for a script that can be used to summarize amino acid sequencies using various metrics, please see the "Metrics" folder.
+The repository is organized into the several folders. For those interested in our fitness estimation technique, from which fitness can be estimated from counts while accounting for changing mean fitness, please see the "Predict fitness" folder. For those interested in estimating fitness using amino acid frequencies, or for a script that can be used to summarize amino acid sequencies using various metrics, please see the "Metrics" folder.
 
 A description of each folder is given below:
 
@@ -13,4 +13,4 @@ Metrics: Contains two scripts, one for predicting fitness using amino acid frequ
 
 Model: Contains scripts related to generating and testing the regression models found in the paper.
 
-Predict fitness: Contains all the code used for predicting fitness from sequencing reads. This folder has its own readme; please refer to that readme for more information.
+Predict fitness: Contains all the code used for predicting fitness from sequencing reads while accounting for changing mean fitness.
