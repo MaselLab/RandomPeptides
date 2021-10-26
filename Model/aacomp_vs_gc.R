@@ -42,8 +42,6 @@ peptide.mixed.aaonly.gc <- lmer(
   weights = Weight.nb.5.7
 )
 summary(peptide.mixed.aaonly.gc)
-AIC(peptide.mixed.gc)
-AIC(peptide.mixed.aaonly.gc)
 anova(peptide.mixed.aaonly.gc, peptide.mixed.gc, test = "LRT")
 drop1(peptide.mixed.aaonly.gc, test = "Chisq")
 
@@ -63,76 +61,15 @@ drop1(peptide.mixed.nb.aaonly.lm, test = "Chisq")
 anova(peptide.mixed.aaonly.gc, peptide.mixed.nb.aaonly.lm, test = "LRT")
 #anova(peptide.mixed.nb.aaonly.lm, peptide.mixed.intercept, test = "LRT")
 
-# Checking LOGOCV.
-source(file = "Scripts/RandomPeptides/Metrics/logocv.R")
-
-wmse.gc <- logo_cv(
-  data.df = peptide.data,
-  predictors = "GC.avg",
-  dependent.variable = "Fitness.nb",
-  group.col = "Cluster",
-  weight.col = "Weight.nb.5.7",
-  re.form = NA, random.only = F, type = "response"
-)
-wmse.gc
-
-wmse.aa_plus_gc <- logo_cv(
-  data.df = peptide.data,
-  predictors = c("Leu", "Pro", "Met", "Trp", "Ala",
-                 "Val", "Phe", "Ile", "Gly", "Ser",
-                 "Thr", "Cys", "Asn", "Gln", "Tyr",
-                 "His", "Asp", "Glu", "Lys",
-                 "GC.avg"),
-  dependent.variable = "Fitness.nb",
-  group.col = "Cluster",
-  weight.col = "Weight.nb.5.7",
-  re.form = NA, random.only = F, type = "response"
-)
-wmse.aa_plus_gc
-
-# Calculating disorder propensity for a disorder + GC content model.
-# Calculating disorder propensity.
-source("~/MaselLab/RandomPeptides/Scripts/RandomPeptides/Metrics/aa_comp_metrics.R")
-peptide.data$disorder <- mean.metric.calculator(
-  aa.sequence = peptide.data$AASeq,
-  metric = "disorder"
-)
-
-# Checking the model.
-peptide.mixed.gc.disorder <- lmer(
-  data = peptide.data[!is.na(peptide.data$GC.avg),],
-  formula = Fitness.nb ~ GC.avg + disorder +
-    (1|Cluster),
-  weights = Weight.nb.5.7
-)
-summary(peptide.mixed.gc.disorder)
-drop1(peptide.mixed.gc.disorder, test = "Chisq")
-
-wmse.disprop_plus_gc <- logo_cv(
-  data.df = peptide.data,
-  predictors = c("disorder", "GC.avg"),
-  dependent.variable = "Fitness.nb",
-  group.col = "Cluster",
-  weight.col = "Weight.nb.5.7",
-  re.form = NA, random.only = F, type = "response"
-)
-wmse.disprop_plus_gc
-
-# Checking lmer starting values.
-aaonly.lm.ff <- lFormula(data = peptide.data[!is.na(peptide.data$GC.avg),], Fitness.nb ~
-                           Leu + Pro + Met + Trp + Ala +
-                           Val + Phe + Ile + Gly + Ser +
-                           Thr + Cys + Asn + Gln + Tyr +
-                           His + Asp + Glu + Lys + Arg +
-                           (1|Cluster) +
-                           0)
-ifelse(aaonly.lm.ff$reTrms$lower == 0, 1, 0)
-
-# Do single amino acids improve a GC content only model?
+# Combined model.
 peptide.mixed.aa.gc <- lmer(
   data = peptide.data[!is.na(peptide.data$GC.avg),],
-  formula = Fitness.nb ~ GC.avg + Pro +
-    (1|Cluster),
+  formula = Fitness.nb ~ GC.avg +
+    Leu + Pro + Met + Trp + Ala +
+    Val + Phe + Ile + Gly + Ser +
+    Thr + Cys + Asn + Gln + Tyr +
+    His + Asp + Glu + Lys + Arg +
+    (1|Cluster) + 0,
   weights = Weight.nb.5.7
 )
 summary(peptide.mixed.aa.gc)
@@ -239,38 +176,6 @@ aa.gc.lm <- lm(
 )
 aa.gc.lm.summary <- summary(aa.gc.lm)
 aa.gc.lm.summary
-
-# full.lm <- lm(
-#   data = peptide.cluster,
-#   formula = Fitness.nb ~ 
-#     Leu + Pro + Met + Trp + Ala +
-#     Val + Phe + Ile + Gly + Ser +
-#     Thr + Cys + Asn + Gln + Tyr +
-#     His + Asp + Glu + Lys #+ Arg +
-#   #0
-#   + TangoAAsInAPRs + net.charge + Clustering.Six
-#   ,
-#   weights = Weight.nb.sum
-# )
-# full.lm.summary <- summary(full.lm)
-# full.lm.summary
-
-# full.gc.lm <- lm(
-#   data = peptide.cluster,
-#   formula = Fitness.nb ~ 
-#     Leu + Pro + Met + Trp + Ala +
-#     Val + Phe + Ile + Gly + Ser +
-#     Thr + Cys + Asn + Gln + Tyr +
-#     His + Asp + Glu + Lys #+ Arg +
-#   #0
-#   + TangoAAsInAPRs + net.charge + Clustering.Six
-#   + GC.avg
-#   ,
-#   weights = Weight.nb.sum
-# )
-# full.gc.lm.summary <- summary(full.gc.lm)
-# full.gc.lm.summary
-# drop1(full.gc.lm, test = "Chisq")
 
 # Comparing the GC content only, aa comp only, and GC content + aa comp models to intercept only.
 intercept.lm <- lm(
