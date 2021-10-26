@@ -5,7 +5,7 @@ The repository is organized into the several folders. For those interested in ou
 
 A description of each folder is given below:
 
-Data: Contains the data generated from the present study. The data from Neme et al. (2017) can be found at Dryad http://dx.doi.org/10.5061/dryad.6f356, and the original sequences are available at the European Nucleotide Archive (ENA) under the project number PRJEB19640.
+Data: Contains the data from the paper, but does not include Neme et al.'s (2017) sequencing counts. The data from Neme et al. (2017) can be found at Dryad http://dx.doi.org/10.5061/dryad.6f356, and the original sequences are available at the European Nucleotide Archive (ENA) under the project number PRJEB19640.
 
 Figures: All the scripts used to generate the figures found in the paper can be found here.
 
