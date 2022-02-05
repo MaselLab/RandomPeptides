@@ -78,6 +78,7 @@ fitness.nb.aa.lm <- lmer(data = peptide.data,
                            His + Asp + Glu + Lys + Arg +
                            (1|Cluster) + 0,
                          weights = Weight.nb.5.7)
+drop1(fitness.nb.aa.lm, test = "Chisq")
 
 # Calculating predicted fitness each model.
 peptide.data$ISD.fit <- predict(isd.lme,

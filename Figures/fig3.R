@@ -4,6 +4,7 @@
 library(tidyverse)
 library(lme4)
 library(Hmisc)
+library(Biostrings)
 
 # Load data.
 peptide.data <- read.table(file = "Scripts/RandomPeptides/Data/supplemental_table_1.tsv", header = T, stringsAsFactors = F)
@@ -244,6 +245,19 @@ properties.df$weight <- mean.metric.calculator(properties.df$OneLetter, metric =
 properties.df$pI <- mean.metric.calculator(properties.df$OneLetter, metric = "pI")
 properties.df
 
+# Also calculating the frequencies in the E.coli proteome, based off the K-12 reference.
+ecoli <- readAAStringSet(filepath = "https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/reference_proteomes/Bacteria/UP000000625/UP000000625_83333.fasta.gz")
+ecoli_freqs <- alphabetFrequency(ecoli, as.prob = F)
+ecoli_totals <- colSums(ecoli_freqs)
+ecoli_freqs_probs <- ecoli_totals / sum(ecoli_totals)
+
+# Making sure the amino acids match.
+identical(names(ecoli_freqs_probs)[1:20], properties.df$OneLetter)
+properties.df$FreqsEcoli <- ecoli_freqs_probs[1:20]
+
+# Note that the frequencies don't quite sum to 1 because there are a few unknown amino acids.
+sum(properties.df$FreqsEcoli)
+
 cor.test(properties.df$Size, properties.df$CostEcoli, method = "spearman")
 cor.test(properties.df$Size, properties.df$DisorderPropensity, method = "spearman")
 cor.test(properties.df$CostEcoli, properties.df$DisorderPropensity, method = "spearman")
@@ -267,6 +281,7 @@ marginals.lm <- lm(
   #+ RSA
   #+ weight
   #+ pI
+  #+ FreqsEcoli
   ,
   weights = 1 / (MarginalLogNBWMaxErr^2)
 )

@@ -202,46 +202,99 @@ aa.gc.aa.lrt
 # Splitting the data into low and high GC content and repeating figure 1D.
 hist(peptide.cluster$GC.avg)
 summary(peptide.cluster$GC.avg)
-gc.median <- median(peptide.cluster$GC.avg)
+gc.median <- median(peptide.cluster$GC.avg, na.rm = T)
 
-cluster.highgc <- peptide.cluster %>% filter(GC.avg > gc.median)
-cluster.lowgc <- peptide.cluster %>% filter(GC.avg <= gc.median)
+high.gc.clusters <- peptide.cluster %>% filter(GC.avg > gc.median) %>% select(Cluster)
 
-highgc.fit.aa.lm <- lm(data = cluster.highgc,
-                       formula = Fitness.nb ~ fit.aa,
-                       weights = Weight.nb.sum)
-summary(highgc.fit.aa.lm)
+highgc.aaonly.lm <- lmer(
+  data = peptide.data %>% filter(Cluster %in% high.gc.clusters$Cluster),
+  formula = Fitness.nb ~
+    Leu + Pro + Met + Trp + Ala +
+    Val + Phe + Ile + Gly + Ser +
+    Thr + Cys + Asn + Gln + Tyr +
+    His + Asp + Glu + Lys + Arg +
+    (1|Cluster) +
+    0,
+  weights = Weight.nb.5.7
+)
+summary(highgc.aaonly.lm)
+drop1(highgc.aaonly.lm, test = "Chisq")
 
-lowgc.fit.aa.lm <- lm(data = cluster.lowgc,
-                      formula = Fitness.nb ~ fit.aa,
-                      weights = Weight.nb.sum)
-summary(lowgc.fit.aa.lm)
+lowgc.aaonly.lm <- lmer(
+  data = peptide.data %>% filter(!(Cluster %in% high.gc.clusters$Cluster)),
+  formula = Fitness.nb ~
+    Leu + Pro + Met + Trp + Ala +
+    Val + Phe + Ile + Gly + Ser +
+    Thr + Cys + Asn + Gln + Tyr +
+    His + Asp + Glu + Lys + Arg +
+    (1|Cluster) +
+    0,
+  weights = Weight.nb.5.7
+)
+summary(lowgc.aaonly.lm)
+drop1(lowgc.aaonly.lm, test = "Chisq")
 
-peptide.cluster <- peptide.cluster %>%
-  mutate("GC Category" = if_else(
-    GC.avg > gc.median, "High GC", "Low GC"
-  ))
+peptide.data <- peptide.data %>% mutate(
+  fit.highlow.gc = if_else(
+    Cluster %in% high.gc.clusters$Cluster,
+    predict(highgc.aaonly.lm,
+            newdata = .,
+            type = "response",
+            random.only = F,
+            re.form = NA),
+    predict(lowgc.aaonly.lm,
+            newdata = .,
+            type = "response",
+            random.only = F,
+            re.form = NA)
+  )
+)
+
+gc.cluster <- peptide.data %>%
+  group_by(Cluster) %>%
+  summarise(
+    Weight.nb.sum = sum(Weight.nb.5.7), Fitness.nb = wtd.mean(Fitness.nb, weights = Weight.nb.5.7),
+    fit.highlow.gc = wtd.mean(fit.highlow.gc, weights = Weight.nb.5.7)
+  )
+
+gc.cluster <- gc.cluster %>% mutate(
+  "GC Type" = if_else(
+    Cluster %in% high.gc.clusters$Cluster,
+    "High GC (> 57.4%)", "Low GC (\U2264 57.4%)"
+  )
+)
 
 cbbPalette <- c("#0072B2", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#D55E00", "#CC79A7")
 
-peptide.cluster %>% ggplot(
+highgc.lm <- lm(
+  data = gc.cluster %>% filter(`GC Type` == "High GC (> 57.4%)"),
+  formula = Fitness.nb ~ fit.highlow.gc,
+  weights = Weight.nb.sum
+)
+summary(highgc.lm)
+lowgc.lm <- lm(
+  data = gc.cluster %>% filter(`GC Type` != "High GC (> 57.4%)"),
+  formula = Fitness.nb ~ fit.highlow.gc,
+  weights = Weight.nb.sum
+)
+summary(lowgc.lm)
+
+gc.cluster %>% ggplot(
   data = .,
-  aes(x = fit.aa,
-      y = Fitness.nb,
-      size = Weight.nb.sum,
-      weight = Weight.nb.sum,
-      group = `GC Category`,
-      color = `GC Category`)
+  aes(
+    x = fit.highlow.gc,
+    y = Fitness.nb,
+    size = Weight.nb.sum,
+    weight = Weight.nb.sum,
+    color = `GC Type`
+  )
 ) +
+  geom_smooth(method = "lm", lwd = 1.5, se = F) +
+  geom_point(alpha = 0.4) + ylim(c(0,2)) +
+  scale_x_continuous(breaks = c(0.25, 0.50, 0.75, 1.00)) +
   ylab("Fitness") + xlab("AA-predicted fitness") +
-  geom_point(alpha = 0.4) +
-  geom_smooth(method = "lm", se = F, lwd = 1.5) +
-  # stat_function(fun = function(x){
-  #   highgc.fit.aa.lm$coefficients[1] + highgc.fit.aa.lm$coefficients[2]*x
-  # }, lwd = 1.5, color = cbbPalette[6]) +
-  # stat_function(fun = function(x){
-  #   lowgc.fit.aa.lm$coefficients[1] + lowgc.fit.aa.lm$coefficients[2]*x
-  # }, lwd = 1.5, color = cbbPalette[2]) +
-  scale_y_continuous(limits = c(0,2)) +
   scale_color_manual(values = cbbPalette) +
-  theme_bw(base_size = 28) + theme(legend.position = "none")
+  theme_bw(base_size = 28)
+
+ggsave(filename = "Figures/gc_high_low.png",
+       units = "in", width = 10, height = 6)
