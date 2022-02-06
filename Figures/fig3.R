@@ -258,6 +258,39 @@ properties.df$FreqsEcoli <- ecoli_freqs_probs[1:20]
 # Note that the frequencies don't quite sum to 1 because there are a few unknown amino acids.
 sum(properties.df$FreqsEcoli)
 
+# Adjusting for codon number
+properties.df$Codon_freqs <-
+  c(
+    4/61,
+    6/61,
+    2/61,
+    2/61,
+    2/61,
+    2/61,
+    2/61,
+    4/61,
+    2/61,
+    3/61,
+    6/61,
+    2/61,
+    1/61,
+    2/61,
+    4/61,
+    6/61,
+    4/61,
+    1/61,
+    2/61,
+    4/61
+  )
+# Making sure codon frequencies sum to 1
+sum(properties.df$Codon_freqs)
+# Double checking values to make sure they're right.
+properties.df %>% select(OneLetter, Codon_freqs)
+# Taking the difference in E. coli AA freqs and codon freqs to get the difference than expected.
+properties.df$Diff_freqs <- properties.df$FreqsEcoli - properties.df$Codon_freqs
+# Checking all three together
+properties.df %>% select(OneLetter, FreqsEcoli, Codon_freqs, Diff_freqs)
+
 cor.test(properties.df$Size, properties.df$CostEcoli, method = "spearman")
 cor.test(properties.df$Size, properties.df$DisorderPropensity, method = "spearman")
 cor.test(properties.df$CostEcoli, properties.df$DisorderPropensity, method = "spearman")
@@ -282,6 +315,8 @@ marginals.lm <- lm(
   #+ weight
   #+ pI
   #+ FreqsEcoli
+  #+ Codon_freqs
+  #+ Diff_freqs
   ,
   weights = 1 / (MarginalLogNBWMaxErr^2)
 )

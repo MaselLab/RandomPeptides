@@ -62,7 +62,7 @@ peptide.mixed.nb.aaonly.lm <- lmer(
     0,
   weights = Weight.nb.5.7
 )
-summary(peptie.mixed.nb.aaonly.lm)
+summary(peptide.mixed.nb.aaonly.lm)
 drop1(peptide.mixed.nb.aaonly.lm, test = "Chisq")
 
 peptide.mixed.dnb.lm <- lmer(
@@ -77,7 +77,7 @@ peptide.mixed.dnb.lm <- lmer(
     #net.charge +
     (1|Cluster) +
     0,
-  weights = Weight.nb
+  weights = Weight.nb.5.7
 )
 summary(peptide.mixed.nb.lm)
 drop1(peptide.mixed.nb.lm, test = "Chisq")
@@ -96,13 +96,13 @@ drop1(peptide.mixed.nb.predhel.lm, test = "Chisq")
 peptide.mixed.other.predictors.nb.lm <- lmer(
   data = peptide.data,
   formula = Fitness.nb ~
-    #Leu + Pro + Met + Trp + Ala +
-    #Val + Phe + Ile + Gly + Ser +
-    #Thr + Cys + Asn + Gln + Tyr +
-    #His + Asp + Glu + Lys + Arg +
-    sqrt(ISD.iupred2) +
+    Leu + Pro + Met + Trp + Ala +
+    Val + Phe + Ile + Gly + Ser +
+    Thr + Cys + Asn + Gln + Tyr +
+    His + Asp + Glu + Lys + Arg +
+    #sqrt(ISD.iupred2) +
     #pI +
-    #CamSol.avg +
+    CamSol.avg +
     #Clustering.Six +
     #TangoAAsInAPRs +
     #ISD.delta +
