@@ -28,8 +28,8 @@ hist(peptide.data$disorder)
 isd.lme <-
   lmer(
     data = peptide.data,
-    formula = Fitness.nb ~ sqrt(ISD.iupred2) + (1|Cluster),
-    weights = Weight.nb.5.7
+    formula = FITNESS ~ sqrt(ISD.iupred2) + (1|Cluster),
+    weights = WEIGHT
   )
 drop1(isd.lme, test = "Chisq")
 isd.summary <- summary(isd.lme)
@@ -37,8 +37,8 @@ isd.summary <- summary(isd.lme)
 clustering.lme <-
   lmer(
     data = peptide.data,
-    formula = Fitness.nb ~ Clustering.Six + (1|Cluster),
-    weights = Weight.nb.5.7
+    formula = FITNESS ~ Clustering.Six + (1|Cluster),
+    weights = WEIGHT
   )
 drop1(clustering.lme, test = "Chisq")
 clustering.summary <- summary(clustering.lme)
@@ -46,8 +46,8 @@ clustering.summary <- summary(clustering.lme)
 camsol.lme <-
   lmer(
     data = peptide.data,
-    formula = Fitness.nb ~ CamSol.avg + (1|Cluster),
-    weights = Weight.nb.5.7
+    formula = FITNESS ~ CamSol.avg + (1|Cluster),
+    weights = WEIGHT
   )
 drop1(camsol.lme, test = "Chisq")
 camsol.summary <- summary(camsol.lme)
@@ -55,30 +55,40 @@ camsol.summary <- summary(camsol.lme)
 tango.lme <-
   lmer(
     data = peptide.data,
-    formula = Fitness.nb ~ TangoAAsInAPRs + (1|Cluster),
-    weights = Weight.nb.5.7
+    formula = FITNESS ~ TangoAAsInAPRs + (1|Cluster),
+    weights = WEIGHT
   )
 drop1(tango.lme, test = "Chisq")
 tango.summary <- summary(tango.lme)
 
+waltz.lme <-
+  lmer(
+    data = peptide.data,
+    formula = FITNESS ~ WaltzAAsInAPRs + (1|Cluster),
+    weights = WEIGHT
+  )
+drop1(waltz.lme, test = "Chisq")
+waltz.summary <- summary(waltz.lme)
+waltz.summary
+
 disorder.lme <-
   lmer(
     data = peptide.data,
-    formula = Fitness.nb ~ disorder + (1|Cluster),
-    weights = Weight.nb.5.7
+    formula = FITNESS ~ disorder + (1|Cluster),
+    weights = WEIGHT
   )
 drop1(disorder.lme, test = "Chisq")
 disorder.summary <- summary(disorder.lme)
 
-fitness.nb.aa.lm <- lmer(data = peptide.data,
-                         formula = Fitness.nb ~
+FITNESS.aa.lm <- lmer(data = peptide.data,
+                         formula = FITNESS ~
                            Leu + Pro + Met + Trp + Ala +
                            Val + Phe + Ile + Gly + Ser +
                            Thr + Cys + Asn + Gln + Tyr +
                            His + Asp + Glu + Lys + Arg +
                            (1|Cluster) + 0,
-                         weights = Weight.nb.5.7)
-drop1(fitness.nb.aa.lm, test = "Chisq")
+                         weights = WEIGHT)
+drop1(FITNESS.aa.lm, test = "Chisq")
 
 # Calculating predicted fitness each model.
 peptide.data$ISD.fit <- predict(isd.lme,
@@ -108,7 +118,7 @@ peptide.data$disorder.fit <- predict(disorder.lme,
                                      re.form = NA)
 peptide.data$fit.aa <- 
   predict(
-    fitness.nb.aa.lm,
+    FITNESS.aa.lm,
     newdata = peptide.data,
     type = "response",
     random.only = F,
@@ -118,13 +128,13 @@ peptide.data$fit.aa <-
 # Checking significance for AA model.
 intercept.only.lm <- lmer(
   data = peptide.data,
-  formula = Fitness.nb ~ (1|Cluster),
-  weights = Weight.nb.5.7
+  formula = FITNESS ~ (1|Cluster),
+  weights = WEIGHT
 )
-anova(fitness.nb.aa.lm, intercept.only.lm, test = "lrt")
+anova(FITNESS.aa.lm, intercept.only.lm, test = "lrt")
 
 # Looking at effect size.
-quantile(peptide.data$Fitness.nb)
+quantile(peptide.data$FITNESS)
 quantile(peptide.data$ISD.fit, probs = seq(0, 1, by = 0.1))
 quantile(peptide.data$Clustering.fit, probs = seq(0, 1, by = 0.1))
 quantile(peptide.data$CamSol.fit, probs = seq(0, 1, by = 0.1))
@@ -136,70 +146,70 @@ quantile(peptide.data$fit.aa, probs = seq(0, 1, by = 0.1))
 by_cluster <-
   peptide.data %>% 
   group_by(Cluster) %>%
-  summarise(Weight.nb.sum = sum(Weight.nb.5.7),
-            ISD.iupred2 = wtd.mean(ISD.iupred2, weights = Weight.nb.5.7), Fitness.nb = wtd.mean(Fitness.nb, weights = Weight.nb.5.7),
-            Leu = wtd.mean(Leu, weights = Weight.nb.5.7), Phe = wtd.mean(Phe, weights = Weight.nb.5.7),
-            Met = wtd.mean(Met, weights = Weight.nb.5.7), Val = wtd.mean(Val, weights = Weight.nb.5.7),
-            Ile = wtd.mean(Ile, weights = Weight.nb.5.7), Lys = wtd.mean(Lys, weights = Weight.nb.5.7),
-            His = wtd.mean(His, weights = Weight.nb.5.7), Arg = wtd.mean(Arg, weights = Weight.nb.5.7),
-            Glu = wtd.mean(Glu, weights = Weight.nb.5.7), Asp = wtd.mean(Asp, weights = Weight.nb.5.7),
-            Gln = wtd.mean(Gln, weights = Weight.nb.5.7), Asn = wtd.mean(Asn, weights = Weight.nb.5.7),
-            Gly = wtd.mean(Gly, weights = Weight.nb.5.7), Ala = wtd.mean(Ala, weights = Weight.nb.5.7),
-            Pro = wtd.mean(Pro, weights = Weight.nb.5.7), Ser = wtd.mean(Ser, weights = Weight.nb.5.7),
-            Trp = wtd.mean(Trp, weights = Weight.nb.5.7), Tyr = wtd.mean(Tyr, weights = Weight.nb.5.7),
-            Thr = wtd.mean(Thr, weights = Weight.nb.5.7), Cys = wtd.mean(Cys, weights = Weight.nb.5.7),
-            Clustering.Six = wtd.mean(Clustering.Six, weights = Weight.nb.5.7),
-            TangoAAsInAPRs = wtd.mean(TangoAAsInAPRs, weights = Weight.nb.5.7),
-            CamSol.avg = wtd.mean(CamSol.avg, weights = Weight.nb.5.7),
-            charge.pos = wtd.mean(charge.pos, weights = Weight.nb.5.7), charge.neg = wtd.mean(charge.neg),
-            net.charge = wtd.mean(net.charge, weights = Weight.nb.5.7),
-            disorder = wtd.mean(disorder, weights = Weight.nb.5.7),
-            ISD.delta = wtd.mean(ISD.delta, weights = Weight.nb.5.7),
-            ISD.fit = wtd.mean(ISD.fit, weights = Weight.nb.5.7), Clustering.fit = wtd.mean(Clustering.fit, weights = Weight.nb.5.7),
-            CamSol.fit = wtd.mean(CamSol.fit, weights = Weight.nb.5.7), Tango.fit = wtd.mean(Tango.fit, weights = Weight.nb.5.7),
-            disorder.fit = wtd.mean(disorder.fit, weights = Weight.nb.5.7),
-            AA.fit = wtd.mean(fit.aa, weights = Weight.nb.5.7)
+  summarise(Weight.nb.sum = sum(WEIGHT),
+            ISD.iupred2 = wtd.mean(ISD.iupred2, weights = WEIGHT), FITNESS = wtd.mean(FITNESS, weights = WEIGHT),
+            Leu = wtd.mean(Leu, weights = WEIGHT), Phe = wtd.mean(Phe, weights = WEIGHT),
+            Met = wtd.mean(Met, weights = WEIGHT), Val = wtd.mean(Val, weights = WEIGHT),
+            Ile = wtd.mean(Ile, weights = WEIGHT), Lys = wtd.mean(Lys, weights = WEIGHT),
+            His = wtd.mean(His, weights = WEIGHT), Arg = wtd.mean(Arg, weights = WEIGHT),
+            Glu = wtd.mean(Glu, weights = WEIGHT), Asp = wtd.mean(Asp, weights = WEIGHT),
+            Gln = wtd.mean(Gln, weights = WEIGHT), Asn = wtd.mean(Asn, weights = WEIGHT),
+            Gly = wtd.mean(Gly, weights = WEIGHT), Ala = wtd.mean(Ala, weights = WEIGHT),
+            Pro = wtd.mean(Pro, weights = WEIGHT), Ser = wtd.mean(Ser, weights = WEIGHT),
+            Trp = wtd.mean(Trp, weights = WEIGHT), Tyr = wtd.mean(Tyr, weights = WEIGHT),
+            Thr = wtd.mean(Thr, weights = WEIGHT), Cys = wtd.mean(Cys, weights = WEIGHT),
+            Clustering.Six = wtd.mean(Clustering.Six, weights = WEIGHT),
+            TangoAAsInAPRs = wtd.mean(TangoAAsInAPRs, weights = WEIGHT),
+            CamSol.avg = wtd.mean(CamSol.avg, weights = WEIGHT),
+            charge.pos = wtd.mean(charge.pos, weights = WEIGHT), charge.neg = wtd.mean(charge.neg),
+            net.charge = wtd.mean(net.charge, weights = WEIGHT),
+            disorder = wtd.mean(disorder, weights = WEIGHT),
+            ISD.delta = wtd.mean(ISD.delta, weights = WEIGHT),
+            ISD.fit = wtd.mean(ISD.fit, weights = WEIGHT), Clustering.fit = wtd.mean(Clustering.fit, weights = WEIGHT),
+            CamSol.fit = wtd.mean(CamSol.fit, weights = WEIGHT), Tango.fit = wtd.mean(Tango.fit, weights = WEIGHT),
+            disorder.fit = wtd.mean(disorder.fit, weights = WEIGHT),
+            AA.fit = wtd.mean(fit.aa, weights = WEIGHT)
   )
 
 # And now for the R-squared.
 isd.fit.lm <- lm(
   data = by_cluster,
-  formula = Fitness.nb ~ sqrt(ISD.iupred2),
+  formula = FITNESS ~ sqrt(ISD.iupred2),
   weights = Weight.nb.sum
 )
 summary(isd.fit.lm)
 clustering.fit.lm <- lm(
   data = by_cluster,
-  formula = Fitness.nb ~ Clustering.Six,
+  formula = FITNESS ~ Clustering.Six,
   weights = Weight.nb.sum
 )
 summary(clustering.fit.lm)
 CamSol.fit.lm <- lm(
   data = by_cluster,
-  formula = Fitness.nb ~ CamSol.avg,
+  formula = FITNESS ~ CamSol.avg,
   weights = Weight.nb.sum
 )
 summary(CamSol.fit.lm)
 Tango.fit.lm <- lm(
   data = by_cluster,
-  formula = Fitness.nb ~ TangoAAsInAPRs,
+  formula = FITNESS ~ TangoAAsInAPRs,
   weights = Weight.nb.sum
 )
 summary(Tango.fit.lm)
 disorder.fit.lm <- lm(
   data = by_cluster,
-  formula = Fitness.nb ~ disorder,
+  formula = FITNESS ~ disorder,
   weights = Weight.nb.sum
 )
 summary(disorder.fit.lm)
 fit.aa.lm <- lm(data = by_cluster,
-                formula = Fitness.nb ~ AA.fit,
+                formula = FITNESS ~ AA.fit,
                 weights = Weight.nb.sum)
 summary(fit.aa.lm)
 
 delta.isd.lm <- lm(
   data = by_cluster,
-  formula = Fitness.nb ~ ISD.delta,
+  formula = FITNESS ~ ISD.delta,
   weights = Weight.nb.sum
 )
 summary(delta.isd.lm)
@@ -223,7 +233,7 @@ math.sign <- function(x){
 }
 
 peptide.data %>% group_by(Cluster) %>% summarise(
-  Slope = lm(formula = Fitness.nb ~ Clustering.Six, weights = Weight.nb.5.7)$coefficients[2],
+  Slope = lm(formula = FITNESS ~ Clustering.Six, weights = WEIGHT)$coefficients[2],
   Sign = math.sign(Slope)
 ) %>% group_by(Sign) %>% summarise(N = n())
 
@@ -254,7 +264,7 @@ fit.plotting <- function(.x, y.limit = c(0,2)){
   
   # Making a new DF for plotting.
   plot.df <- data.frame(
-    "Fitness" = by_cluster[["Fitness.nb"]],
+    "Fitness" = by_cluster[["FITNESS"]],
     "Fit" = by_cluster[[.x]],
     "Weight.nb.sum" = by_cluster[["Weight.nb.sum"]]
   )

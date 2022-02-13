@@ -10,21 +10,21 @@ library(Biostrings)
 peptide.data <- read.table(file = "Scripts/RandomPeptides/Data/supplemental_table_1.tsv", header = T, stringsAsFactors = F)
 
 # Date of file generation.
-today.date <- "5-20-2020"
+today.date <- Sys.Date()
 
 # Calculating the marginal effects.
 # Amino acid frequency only model.
 peptide.mixed.nb.log.aaonly.lm <-
   lmer(
     data = peptide.data,
-    formula = Fitness.nb ~
+    formula = FITNESS ~
       Leu + Pro + Met + Trp + Ala +
       Val + Phe + Ile + Gly + Ser +
       Thr + Cys + Asn + Gln + Tyr +
       His + Asp + Glu + Lys + Arg +
       (1|Cluster) +
       0,
-    weights = Weight.nb.5.7
+    weights = WEIGHT
   )
 log.aaonly.summary <- summary(peptide.mixed.nb.log.aaonly.lm)
 log.aaonly.summary
@@ -121,23 +121,23 @@ custom.contrasts <- function(weight.df, linear.model, aa.col = "AminoAcid", weig
 by_cluster <-
   peptide.data %>% 
   group_by(Cluster) %>%
-  summarise(Weight.nb.sum = sum(Weight.nb.5.7), 
-            ISD.iupred2 = wtd.mean(ISD.iupred2, weights = Weight.nb.5.7), Fitness.nb = wtd.mean(Fitness.nb, weights = Weight.nb.5.7),
-            Leu = wtd.mean(Leu, weights = Weight.nb.5.7), Phe = wtd.mean(Phe, weights = Weight.nb.5.7),
-            Met = wtd.mean(Met, weights = Weight.nb.5.7), Val = wtd.mean(Val, weights = Weight.nb.5.7),
-            Ile = wtd.mean(Ile, weights = Weight.nb.5.7), Lys = wtd.mean(Lys, weights = Weight.nb.5.7),
-            His = wtd.mean(His, weights = Weight.nb.5.7), Arg = wtd.mean(Arg, weights = Weight.nb.5.7),
-            Glu = wtd.mean(Glu, weights = Weight.nb.5.7), Asp = wtd.mean(Asp, weights = Weight.nb.5.7),
-            Gln = wtd.mean(Gln, weights = Weight.nb.5.7), Asn = wtd.mean(Asn, weights = Weight.nb.5.7),
-            Gly = wtd.mean(Gly, weights = Weight.nb.5.7), Ala = wtd.mean(Ala, weights = Weight.nb.5.7),
-            Pro = wtd.mean(Pro, weights = Weight.nb.5.7), Ser = wtd.mean(Ser, weights = Weight.nb.5.7),
-            Trp = wtd.mean(Trp, weights = Weight.nb.5.7), Tyr = wtd.mean(Tyr, weights = Weight.nb.5.7),
-            Thr = wtd.mean(Thr, weights = Weight.nb.5.7), Cys = wtd.mean(Cys, weights = Weight.nb.5.7),
-            Clustering.Six = wtd.mean(Clustering.Six, weights = Weight.nb.5.7),
-            TangoAAsInAPRs = wtd.mean(TangoAAsInAPRs, weights = Weight.nb.5.7),
-            CamSol.avg = wtd.mean(CamSol.avg, weights = Weight.nb.5.7),
-            ISD.delta = wtd.mean(ISD.delta, weights = Weight.nb.5.7),
-            net.charge = wtd.mean(net.charge, weights = Weight.nb.5.7),
+  summarise(Weight.nb.sum = sum(WEIGHT), 
+            ISD.iupred2 = wtd.mean(ISD.iupred2, weights = WEIGHT), FITNESS = wtd.mean(FITNESS, weights = WEIGHT),
+            Leu = wtd.mean(Leu, weights = WEIGHT), Phe = wtd.mean(Phe, weights = WEIGHT),
+            Met = wtd.mean(Met, weights = WEIGHT), Val = wtd.mean(Val, weights = WEIGHT),
+            Ile = wtd.mean(Ile, weights = WEIGHT), Lys = wtd.mean(Lys, weights = WEIGHT),
+            His = wtd.mean(His, weights = WEIGHT), Arg = wtd.mean(Arg, weights = WEIGHT),
+            Glu = wtd.mean(Glu, weights = WEIGHT), Asp = wtd.mean(Asp, weights = WEIGHT),
+            Gln = wtd.mean(Gln, weights = WEIGHT), Asn = wtd.mean(Asn, weights = WEIGHT),
+            Gly = wtd.mean(Gly, weights = WEIGHT), Ala = wtd.mean(Ala, weights = WEIGHT),
+            Pro = wtd.mean(Pro, weights = WEIGHT), Ser = wtd.mean(Ser, weights = WEIGHT),
+            Trp = wtd.mean(Trp, weights = WEIGHT), Tyr = wtd.mean(Tyr, weights = WEIGHT),
+            Thr = wtd.mean(Thr, weights = WEIGHT), Cys = wtd.mean(Cys, weights = WEIGHT),
+            Clustering.Six = wtd.mean(Clustering.Six, weights = WEIGHT),
+            TangoAAsInAPRs = wtd.mean(TangoAAsInAPRs, weights = WEIGHT),
+            CamSol.avg = wtd.mean(CamSol.avg, weights = WEIGHT),
+            ISD.delta = wtd.mean(ISD.delta, weights = WEIGHT),
+            net.charge = wtd.mean(net.charge, weights = WEIGHT),
             Trp.unweighted = mean(Trp), Arg.unweighted = mean(Arg)
   )
 
@@ -170,7 +170,7 @@ aa.freqs.wmax
 # The order of the freq data and the linear model need to be the same.
 match(names(log.aaonly.summary$coefficients[,1]), aa.freqs.wmax$AminoAcid)
 aa.freqs.wmax[match(names(log.aaonly.summary$coefficients[,1]), aa.freqs.wmax$AminoAcid),]
-aa.freqs.wmax[match(names(log.aaonly.summary$coefficients[,1]), aa.freqs.wmax[,"AminoAcid"]),]
+aa.freqs.wmax[match(names(log.aaonly.summary$coefficients[,1]), aa.freqs.wmax[,1]),]
 aa.freqs.ordered <- aa.sort.lm(peptide.mixed.nb.log.aaonly.lm, aa.freqs.wmax)
 aa.freqs.ordered
 as.list(aa.freqs.ordered[,"Count"])[[1]]
@@ -411,7 +411,7 @@ marginals.hydrophobic.lm <- lm(
 summary(marginals.hydrophobic.lm)
 drop1(marginals.hydrophobic.lm, test = "Chisq")
 
-# Adding hydrophobicity does not significantly improve the model, barely.
+# Adding hydrophobicity does improve the model, barely.
 anova(marginals.lm, marginals.hydrophobic.lm, test = "LRT")
 
 carbons.cor <- custom.weighted.pearson(
@@ -478,20 +478,14 @@ pI.cor <- custom.weighted.pearson(
 )
 pI.cor
 
-# Also checking tryptophan vs arginine content.
-custom.weighted.pearson(
-  x = peptide.data$Trp,
-  x.var = sqrt(1 / peptide.data$Weight.nb.5.7),
-  y = peptide.data$Arg,
-  y.var = sqrt(1 / peptide.data$Weight.nb.5.7)
+# Checking how much the model changes if tryptophan is excluded.
+marginals.noW.lm <- lm(
+  data = slopes.aa.props %>% filter(OneLetter != "W"),
+  formula = MarginalLogNBWMax ~ Size + DisorderPropensity
+  ,
+  weights = 1 / (MarginalLogNBWMaxErr^2)
 )
-
-mean(by_cluster$Trp.unweighted)
-wtd.mean(by_cluster$Trp, weights = by_cluster$Weight.nb.sum)
-
-cor.test(by_cluster$Trp.unweighted, by_cluster$Arg.unweighted, method = "spearman")
-var(by_cluster$Trp.unweighted)
-var(by_cluster$Arg.unweighted)
+summary(marginals.noW.lm)
 
 # Checking the mean and median fitness cost from Mehlhoff et al. (2020).
 mehlhoff.data <- read_tsv(file = "Data/MeanMedian_Fitness.txt")
@@ -671,7 +665,7 @@ dev.off()
 disprop.name <- paste("Scripts/Figures/disprop_vs_marginals_", today.date, ".png", sep = "")
 disprop.cor.label <- paste("R =", signif(disprop.cor[1], 2), "p =", signif(disprop.cor[4], 1))
 png(filename = disprop.name, width = 600, height = 600)
-ggplot(data = slopes.aa.props, aes(y = MarginalLogNBWMax, x = DisorderPropensity, color = RSA)) +
+ggplot(data = slopes.aa.props, aes(y = MarginalLogNBWMax, x = DisorderPropensity)) +
   geom_point(size = 4) +
   #geom_errorbar(aes(ymin=AncientPfamSlope - AncientPfamError,
   #                  ymax=AncientPfamSlope + AncientPfamError),
@@ -702,3 +696,4 @@ ggplot(data = slopes.aa.props, aes(y = MarginalLogNBWMax, x = (1 - MeanFit))) +
   annotate("text", label = mehlhoff.mean.cor.label, y = -0.07, x = 0.055, size = 10,
           parse = F) +
   theme_bw(base_size = 28)
+

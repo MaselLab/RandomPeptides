@@ -5,7 +5,7 @@ library(tidyverse)
 library(weights)
 
 # Global variables.
-todays.date <- "5-20-2020"
+todays.date <- Sys.Date()
 cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
 # Load marginal effects.
@@ -19,7 +19,10 @@ names(marginals)[1] <- "AminoAcid"
 
 # Adding first and second position GC or AT preference.
 gc.first.second <- tibble(
-  "AminoAcid" = marginals$AminoAcid,
+  "AminoAcid" = c("Leu", "Pro", "Phe", "Ser", "Ala",
+                  "Val", "Ile", "Met", "Gly", "Thr",
+                  "Cys", "Trp", "Tyr", "His", "Asn",
+                  "Gln", "Asp", "Glu", "Lys", "Arg"),
   "GC.first" = c(NA, "GC", "AT", "AT", "GC",
                  "GC", "AT", "AT", "GC", "AT",
                  "AT", "AT", "AT", "GC", "AT",

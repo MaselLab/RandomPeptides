@@ -11,18 +11,18 @@ library(stats)
 peptide.data <- read.table(file = "Scripts/RandomPeptides/Data/supplemental_table_1.tsv", header = T, stringsAsFactors = F)
 
 # Messing with the weights.
-peptide.data$fit.var <- 1 / peptide.data$Weight.nb.5.7
-peptide.data$fit.var.log <- ((1 / peptide.data$Fitness.nb) ^ 2) * peptide.data$fit.var
+peptide.data$fit.var <- 1 / peptide.data$WEIGHT
+peptide.data$fit.var.log <- ((1 / peptide.data$FITNESS) ^ 2) * peptide.data$fit.var
 peptide.data$weight.log <- 1 / peptide.data$fit.var.log
-peptide.data$fit.var.sqrt <- (1 / (4 * peptide.data$Fitness.nb)) * peptide.data$fit.var
-peptide.data[1:10, c("PeptideID", "Weight.nb.5.7", "Weight.nb.log", "weight.log")]
+peptide.data$fit.var.sqrt <- (1 / (4 * peptide.data$FITNESS)) * peptide.data$fit.var
+peptide.data[1:10, c("PeptideID", "WEIGHT", "Weight.nb.log", "weight.log")]
 peptide.data[1:10, c("PeptideID", "fit.var", "fit.var.log", "fit.var.sqrt")]
 
 # Building the model.
 peptide.mixed.nb.log.lm <-
   lmer(
     data = peptide.data,
-    formula = log(Fitness.nb) ~
+    formula = log(FITNESS) ~
       Leu + Pro + Met + Trp + Ala +
       Val + Phe + Ile + Gly + Ser +
       Thr + Cys + Asn + Gln + Tyr +
@@ -55,7 +55,7 @@ peptide.mixed.nb.log.lm <-
       (1|Cluster)
     + 0
     # ,
-    # weights = Weight.nb.5.7
+    # weights = WEIGHT
   )
 summary(peptide.mixed.nb.log.lm)
 drop1(peptide.mixed.nb.log.lm, test = "Chisq")
@@ -77,98 +77,98 @@ peptide.data$full.predict <- predict(peptide.mixed.nb.log.lm,
 by_cluster <-
   peptide.data %>% 
   group_by(Cluster) %>%
-  summarise(Weight.nb.sum = sum(Weight.nb.5.7), ISD.iupred2 = wtd.mean(ISD.iupred2, weights = Weight.nb.5.7),
-            Fitness.nb = wtd.mean(Fitness.nb, weights = Weight.nb.5.7), Weight.nb.log.sum = sum(Weight.nb.log),
-            Fitness.nb.log = wtd.mean(log(Fitness.nb), weights = Weight.nb.log),
-            Leu = wtd.mean(Leu, weights = Weight.nb.5.7), Phe = wtd.mean(Phe, weights = Weight.nb.5.7),
-            Met = wtd.mean(Met, weights = Weight.nb.5.7), Val = wtd.mean(Val, weights = Weight.nb.5.7),
-            Ile = wtd.mean(Ile, weights = Weight.nb.5.7), Lys = wtd.mean(Lys, weights = Weight.nb.5.7),
-            His = wtd.mean(His, weights = Weight.nb.5.7), Arg = wtd.mean(Arg, weights = Weight.nb.5.7),
-            Glu = wtd.mean(Glu, weights = Weight.nb.5.7), Asp = wtd.mean(Asp, weights = Weight.nb.5.7),
-            Gln = wtd.mean(Gln, weights = Weight.nb.5.7), Asn = wtd.mean(Asn, weights = Weight.nb.5.7),
-            Gly = wtd.mean(Gly, weights = Weight.nb.5.7), Ala = wtd.mean(Ala, weights = Weight.nb.5.7),
-            Pro = wtd.mean(Pro, weights = Weight.nb.5.7), Ser = wtd.mean(Ser, weights = Weight.nb.5.7),
-            Trp = wtd.mean(Trp, weights = Weight.nb.5.7), Tyr = wtd.mean(Tyr, weights = Weight.nb.5.7),
-            Thr = wtd.mean(Thr, weights = Weight.nb.5.7), Cys = wtd.mean(Cys, weights = Weight.nb.5.7),
-            Clustering.Six = wtd.mean(Clustering.Six, weights = Weight.nb.5.7),
-            TangoAAsInAPRs = wtd.mean(TangoAAsInAPRs, weights = Weight.nb.5.7),
-            CamSol.avg = wtd.mean(CamSol.avg, weights = Weight.nb.5.7),
-            ISD.delta = wtd.mean(ISD.delta, weights = Weight.nb.5.7),
-            net.charge = wtd.mean(net.charge, weights = Weight.nb.5.7),
-            charge.pos = wtd.mean(charge.pos, weights = Weight.nb.5.7), charge.neg = wtd.mean(charge.neg, weights = Weight.nb.5.7),
-            full.predict = wtd.mean(full.predict, weights = Weight.nb.5.7),
+  summarise(Weight.nb.sum = sum(WEIGHT), ISD.iupred2 = wtd.mean(ISD.iupred2, weights = WEIGHT),
+            FITNESS = wtd.mean(FITNESS, weights = WEIGHT), Weight.nb.log.sum = sum(Weight.nb.log),
+            FITNESS.log = wtd.mean(log(FITNESS), weights = Weight.nb.log),
+            Leu = wtd.mean(Leu, weights = WEIGHT), Phe = wtd.mean(Phe, weights = WEIGHT),
+            Met = wtd.mean(Met, weights = WEIGHT), Val = wtd.mean(Val, weights = WEIGHT),
+            Ile = wtd.mean(Ile, weights = WEIGHT), Lys = wtd.mean(Lys, weights = WEIGHT),
+            His = wtd.mean(His, weights = WEIGHT), Arg = wtd.mean(Arg, weights = WEIGHT),
+            Glu = wtd.mean(Glu, weights = WEIGHT), Asp = wtd.mean(Asp, weights = WEIGHT),
+            Gln = wtd.mean(Gln, weights = WEIGHT), Asn = wtd.mean(Asn, weights = WEIGHT),
+            Gly = wtd.mean(Gly, weights = WEIGHT), Ala = wtd.mean(Ala, weights = WEIGHT),
+            Pro = wtd.mean(Pro, weights = WEIGHT), Ser = wtd.mean(Ser, weights = WEIGHT),
+            Trp = wtd.mean(Trp, weights = WEIGHT), Tyr = wtd.mean(Tyr, weights = WEIGHT),
+            Thr = wtd.mean(Thr, weights = WEIGHT), Cys = wtd.mean(Cys, weights = WEIGHT),
+            Clustering.Six = wtd.mean(Clustering.Six, weights = WEIGHT),
+            TangoAAsInAPRs = wtd.mean(TangoAAsInAPRs, weights = WEIGHT),
+            CamSol.avg = wtd.mean(CamSol.avg, weights = WEIGHT),
+            ISD.delta = wtd.mean(ISD.delta, weights = WEIGHT),
+            net.charge = wtd.mean(net.charge, weights = WEIGHT),
+            charge.pos = wtd.mean(charge.pos, weights = WEIGHT), charge.neg = wtd.mean(charge.neg, weights = WEIGHT),
+            full.predict = wtd.mean(full.predict, weights = WEIGHT),
             Trp.unweighted = mean(Trp), Arg.unweighted = mean(Arg)
   )
 
-max.weight.cluster <- peptide.data %>% group_by(Cluster) %>% filter(Weight.nb.5.7 == max(Weight.nb.5.7))
+max.weight.cluster <- peptide.data %>% group_by(Cluster) %>% filter(WEIGHT == max(WEIGHT))
 max.logweight.cluster <- peptide.data %>% group_by(Cluster) %>% filter(Weight.nb.log == max(Weight.nb.log))
 
 # Assessing linearity of dependent and independent variables.
 ggplot(data = by_cluster,
-       aes(x = Leu, y = Fitness.nb, size = Weight.nb.sum, weight = Weight.nb.sum)) +
+       aes(x = Leu, y = FITNESS, size = Weight.nb.sum, weight = Weight.nb.sum)) +
   geom_point(alpha = 0.4) +
   geom_smooth(method = "loess") +
   geom_smooth(method = "lm", color = "red") +
   theme(legend.position = "none")
 
 ggplot(data = by_cluster,
-       aes(x = Val, y = Fitness.nb, size = Weight.nb.sum, weight = Weight.nb.sum)) +
+       aes(x = Val, y = FITNESS, size = Weight.nb.sum, weight = Weight.nb.sum)) +
   geom_point(alpha = 0.4) +
   geom_smooth(method = "loess") +
   geom_smooth(method = "lm", color = "red") +
   theme(legend.position = "none")
 
 ggplot(data = by_cluster,
-       aes(x = Phe, y = Fitness.nb, size = Weight.nb.sum, weight = Weight.nb.sum)) +
+       aes(x = Phe, y = FITNESS, size = Weight.nb.sum, weight = Weight.nb.sum)) +
   geom_point(alpha = 0.4) +
   geom_smooth(method = "loess") +
   geom_smooth(method = "lm", color = "red") +
   theme(legend.position = "none")
 
 ggplot(data = by_cluster,
-       aes(x = Met, y = Fitness.nb, size = Weight.nb.sum, weight = Weight.nb.sum)) +
+       aes(x = Met, y = FITNESS, size = Weight.nb.sum, weight = Weight.nb.sum)) +
   geom_point(alpha = 0.4) +
   geom_smooth(method = "loess") +
   geom_smooth(method = "lm", color = "red") +
   theme(legend.position = "none")
 
 ggplot(data = by_cluster,
-       aes(x = Ile, y = Fitness.nb, size = Weight.nb.sum, weight = Weight.nb.sum)) +
+       aes(x = Ile, y = FITNESS, size = Weight.nb.sum, weight = Weight.nb.sum)) +
   geom_point(alpha = 0.4) +
   geom_smooth(method = "loess") +
   geom_smooth(method = "lm", color = "red") +
   theme(legend.position = "none")
 
 ggplot(data = by_cluster,
-       aes(x = Gly, y = Fitness.nb, size = Weight.nb.sum, weight = Weight.nb.sum)) +
+       aes(x = Gly, y = FITNESS, size = Weight.nb.sum, weight = Weight.nb.sum)) +
   geom_point(alpha = 0.4) +
   geom_smooth(method = "loess") +
   geom_smooth(method = "lm", color = "red") +
   theme(legend.position = "none")
 
 ggplot(data = by_cluster,
-       aes(x = Ala, y = Fitness.nb, size = Weight.nb.sum, weight = Weight.nb.sum)) +
+       aes(x = Ala, y = FITNESS, size = Weight.nb.sum, weight = Weight.nb.sum)) +
   geom_point(alpha = 0.4) +
   geom_smooth(method = "loess") +
   geom_smooth(method = "lm", color = "red") +
   theme(legend.position = "none")
 
 ggplot(data = by_cluster,
-       aes(x = Ser, y = Fitness.nb, size = Weight.nb.sum, weight = Weight.nb.sum)) +
+       aes(x = Ser, y = FITNESS, size = Weight.nb.sum, weight = Weight.nb.sum)) +
   geom_point(alpha = 0.4) +
   geom_smooth(method = "loess") +
   geom_smooth(method = "lm", color = "red") +
   theme(legend.position = "none")
 
 ggplot(data = by_cluster,
-       aes(x = Cys, y = Fitness.nb, size = Weight.nb.sum, weight = Weight.nb.sum)) +
+       aes(x = Cys, y = FITNESS, size = Weight.nb.sum, weight = Weight.nb.sum)) +
   geom_point(alpha = 0.4) +
   geom_smooth(method = "loess") +
   geom_smooth(method = "lm", color = "red") +
   theme(legend.position = "none")
 
 ggplot(data = by_cluster,
-       aes(x = Pro, y = Fitness.nb, size = Weight.nb.sum, weight = Weight.nb.sum)) +
+       aes(x = Pro, y = FITNESS, size = Weight.nb.sum, weight = Weight.nb.sum)) +
   geom_point(alpha = 0.4) +
   geom_smooth(method = "loess") +
   geom_smooth(method = "lm", color = "red") +
@@ -176,7 +176,7 @@ ggplot(data = by_cluster,
 
 png(filename = "Scripts/Figures/trp_vs_fitness.png")
 ggplot(data = by_cluster,
-       aes(x = Trp, y = Fitness.nb, size = Weight.nb.sum, weight = Weight.nb.sum)) +
+       aes(x = Trp, y = FITNESS, size = Weight.nb.sum, weight = Weight.nb.sum)) +
   geom_point(alpha = 0.4) +
   geom_smooth(method = "gam") +
   geom_smooth(method = "lm", color = "red") +
@@ -218,63 +218,63 @@ dev.off()
 wtd.mean(by_cluster$Trp, weights = by_cluster$Weight.nb.sum)
 
 ggplot(data = by_cluster,
-       aes(x = His, y = Fitness.nb, size = Weight.nb.sum, weight = Weight.nb.sum)) +
+       aes(x = His, y = FITNESS, size = Weight.nb.sum, weight = Weight.nb.sum)) +
   geom_point(alpha = 0.4) +
   geom_smooth(method = "loess") +
   geom_smooth(method = "lm", color = "red") +
   theme(legend.position = "none")
 
 ggplot(data = by_cluster,
-       aes(x = Lys, y = Fitness.nb, size = Weight.nb.sum, weight = Weight.nb.sum)) +
+       aes(x = Lys, y = FITNESS, size = Weight.nb.sum, weight = Weight.nb.sum)) +
   geom_point(alpha = 0.4) +
   geom_smooth(method = "loess") +
   geom_smooth(method = "lm", color = "red") +
   theme(legend.position = "none")
 
 ggplot(data = by_cluster,
-       aes(x = Arg, y = Fitness.nb, size = Weight.nb.sum, weight = Weight.nb.sum)) +
+       aes(x = Arg, y = FITNESS, size = Weight.nb.sum, weight = Weight.nb.sum)) +
   geom_point(alpha = 0.4) +
   geom_smooth(method = "loess") +
   geom_smooth(method = "lm", color = "red") +
   theme(legend.position = "none")
 
 ggplot(data = by_cluster,
-       aes(x = Glu, y = Fitness.nb, size = Weight.nb.sum, weight = Weight.nb.sum)) +
+       aes(x = Glu, y = FITNESS, size = Weight.nb.sum, weight = Weight.nb.sum)) +
   geom_point(alpha = 0.4) +
   geom_smooth(method = "loess") +
   geom_smooth(method = "lm", color = "red") +
   theme(legend.position = "none")
 
 ggplot(data = by_cluster,
-       aes(x = Asp, y = Fitness.nb, size = Weight.nb.sum, weight = Weight.nb.sum)) +
+       aes(x = Asp, y = FITNESS, size = Weight.nb.sum, weight = Weight.nb.sum)) +
   geom_point(alpha = 0.4) +
   geom_smooth(method = "loess") +
   geom_smooth(method = "lm", color = "red") +
   theme(legend.position = "none")
 
 ggplot(data = by_cluster,
-       aes(x = Gln, y = Fitness.nb, size = Weight.nb.sum, weight = Weight.nb.sum)) +
+       aes(x = Gln, y = FITNESS, size = Weight.nb.sum, weight = Weight.nb.sum)) +
   geom_point(alpha = 0.4) +
   geom_smooth(method = "loess") +
   geom_smooth(method = "lm", color = "red") +
   theme(legend.position = "none")
 
 ggplot(data = by_cluster,
-       aes(x = Asn, y = Fitness.nb, size = Weight.nb.sum, weight = Weight.nb.sum)) +
+       aes(x = Asn, y = FITNESS, size = Weight.nb.sum, weight = Weight.nb.sum)) +
   geom_point(alpha = 0.4) +
   geom_smooth(method = "loess") +
   geom_smooth(method = "lm", color = "red") +
   theme(legend.position = "none")
 
 ggplot(data = by_cluster,
-       aes(x = Tyr, y = Fitness.nb, size = Weight.nb.sum, weight = Weight.nb.sum)) +
+       aes(x = Tyr, y = FITNESS, size = Weight.nb.sum, weight = Weight.nb.sum)) +
   geom_point(alpha = 0.4) +
   geom_smooth(method = "loess") +
   geom_smooth(method = "lm", color = "red") +
   theme(legend.position = "none")
 
 ggplot(data = by_cluster,
-       aes(x = Thr, y = Fitness.nb, size = Weight.nb.sum, weight = Weight.nb.sum)) +
+       aes(x = Thr, y = FITNESS, size = Weight.nb.sum, weight = Weight.nb.sum)) +
   geom_point(alpha = 0.4) +
   geom_smooth(method = "gam") +
   geom_smooth(method = "lm", color = "red") +
@@ -282,7 +282,7 @@ ggplot(data = by_cluster,
 
 # Fitness vs predicted fitness.
 ggplot(data = by_cluster,
-       aes(x = full.predict, y = Fitness.nb, size = Weight.nb.sum, weight = Weight.nb.sum)) +
+       aes(x = full.predict, y = FITNESS, size = Weight.nb.sum, weight = Weight.nb.sum)) +
   geom_point(alpha = 0.4) +
   geom_smooth(method = "loess") +
   geom_smooth(method = "lm", color = "red") +
@@ -290,22 +290,22 @@ ggplot(data = by_cluster,
 
 # Looking at fitness vs variance.
 ggplot(data = peptide.data,
-       aes(y = sqrt(fit.var), x = Fitness.nb)) +
+       aes(y = sqrt(fit.var), x = FITNESS)) +
   ylab("Estimated standard error") +
   xlab("Fitness") +
   geom_point() +
   theme_bw(base_size = 28)
 
 ggplot(data = peptide.data,
-       aes(x = Weight.nb.5.7, y = log(Fitness.nb))) +
+       aes(x = WEIGHT, y = log(FITNESS))) +
   geom_point()
 
 ggplot(data = peptide.data,
-       aes(x = fit.var.log, y = Fitness.nb)) +
+       aes(x = fit.var.log, y = FITNESS)) +
   geom_point()
 
 ggplot(data = peptide.data,
-       aes(x = fit.var.sqrt, y = sqrt(Fitness.nb))) +
+       aes(x = fit.var.sqrt, y = sqrt(FITNESS))) +
   geom_point()
 
 # Looking at weight vs fitness plots
@@ -313,7 +313,7 @@ todays.date <- "5-24-2020"
 
 png(filename = paste("Scripts/Figures/logfit_normweights_", todays.date, ".png", sep = ""))
 ggplot(data = peptide.data,
-       aes(y = Weight.nb.5.7, x = log(Fitness.nb))) +
+       aes(y = WEIGHT, x = log(FITNESS))) +
   geom_point() +
   geom_smooth() +
   xlab("log(Fitness)") +
@@ -323,7 +323,7 @@ dev.off()
 
 png(filename = paste("Scripts/Figures/logfit_logweights_", todays.date, ".png", sep = ""))
 ggplot(data = max.logweight.cluster,
-       aes(y = Weight.nb.log, x = log(Fitness.nb))) +
+       aes(y = Weight.nb.log, x = log(FITNESS))) +
   geom_point() +
   geom_smooth() +
   xlab("log(Fitness)") +
@@ -333,7 +333,7 @@ dev.off()
 
 png(filename = paste("Scripts/Figures/normfit_normweights_", todays.date, ".png", sep = ""))
 ggplot(data = max.weight.cluster,
-       aes(y = Weight.nb.5.7, x = Fitness.nb)) +
+       aes(y = WEIGHT, x = FITNESS)) +
   geom_point() +
   geom_smooth() +
   xlab("Fitness") +
@@ -342,7 +342,7 @@ ggplot(data = max.weight.cluster,
 dev.off()
 
 # Transform choice via Box-Cox method.
-boxcox(peptide.data$Fitness.nb ~ 1, lambda = seq(-0.5, 0.5, by = 0.01))
+boxcox(peptide.data$FITNESS ~ 1, lambda = seq(-0.5, 0.5, by = 0.01))
 # Optimal values include zero, so a log transform is chosen.
 
 # Looking at the data.
@@ -351,7 +351,7 @@ png(filename = paste("Scripts/Figures/fitness_histogram_all_", todays.date, ".pn
 ggplot(
   data = peptide.data,
   aes(
-    x = Fitness.nb
+    x = FITNESS
   )
 ) +
   geom_histogram() +
@@ -363,7 +363,7 @@ png(filename = paste("Scripts/Figures/fitness_histogram_cluster_", todays.date, 
 ggplot(
   data = by_cluster,
   aes(
-    x = Fitness.nb
+    x = FITNESS
   )
 ) +
   geom_histogram() +
@@ -373,7 +373,7 @@ dev.off()
 ggplot(
   data = by_cluster,
   aes(
-    x = (Fitness.nb)^-0.2
+    x = (FITNESS)^-0.2
   )
 ) +
   geom_histogram() +
@@ -396,7 +396,7 @@ qqmath(peptide.mixed.nb.log.lm)
 full.lm <-
   lm(
     data = by_cluster,
-    formula = Fitness.nb ~
+    formula = FITNESS ~
       Leu + Pro + Met + Trp + Ala +
       Val + Phe + Ile + Gly + Ser +
       Thr + Cys + Asn + Gln + Tyr +
@@ -442,7 +442,7 @@ qqline(weighted.residuals(full.lm))
 # the matrix because net charge and the charged amino acids are highly correlated.
 
 # Calculating residuals using only the fixed effects from the mixed model.
-by_cluster$full.resid <- by_cluster$Fitness.nb - by_cluster$full.predict
+by_cluster$full.resid <- by_cluster$FITNESS - by_cluster$full.predict
 # Calculating weighted residuals by multiplying raw residuals by the square root of the weight.
 by_cluster$full.resid.weighted <- by_cluster$full.resid * sqrt(by_cluster$Weight.nb.sum)
 plot(by_cluster$full.predict, by_cluster$full.resid.weighted)
@@ -481,7 +481,7 @@ qqline(weighted.residuals(full.lm))
 aa.lm <-
   lm(
     data = by_cluster,
-    formula = log(Fitness.nb) ~
+    formula = log(FITNESS) ~
       Leu + Pro + Met + Trp + Ala +
       Val + Phe + Ile + Gly + Ser +
       Thr + Cys + Asn + Gln + Tyr +
