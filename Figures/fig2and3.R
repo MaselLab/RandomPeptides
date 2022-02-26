@@ -306,9 +306,29 @@ cor(properties.df[, -1], method = "spearman")
 slopes.aa.props <- merge(slopes.aa.props, properties.df, by = "OneLetter")
 slopes.aa.props
 
+# Adding in a variable for highly hydrophobic, where I, L, M, F, and V are considered highly hydrophobic.
+# Note: This is deprecated. These results are very sensitive to whether W is considered hydrophobic.
+slopes.aa.props$hydrophobic <- ifelse(slopes.aa.props$OneLetter %in% c("I", "L", "M", "F", "V"), 1, 0)
+
+marginals.hydrophobic.lm <- lm(
+  data = slopes.aa.props,
+  formula = MarginalLogNBWMax ~ Size + DisorderPropensity + hydrophobic,
+  weights = 1 / (MarginalLogNBWMaxErr^2)
+)
+summary(marginals.hydrophobic.lm)
+drop1(marginals.hydrophobic.lm, test = "Chisq")
+
+# Checking other predictors.
+cor(slopes.aa.props %>% select(DisorderPropensity, Size, CostEcoli,
+                               stickiness, RSA, weight,
+                               pI, FreqsEcoli, Codon_freqs,
+                               Diff_freqs, hydrophobic))
+
 marginals.lm <- lm(
   data = slopes.aa.props,
-  formula = MarginalLogNBWMax ~ Size + DisorderPropensity
+  formula = MarginalLogNBWMax ~ DisorderPropensity
+  #+ hydrophobic
+  + Size
   #+ CostEcoli
   #+ stickiness
   #+ RSA
@@ -322,6 +342,37 @@ marginals.lm <- lm(
 )
 summary(marginals.lm)
 drop1(marginals.lm, test = "Chisq")
+
+# Comparing to an RSA model.
+rsa.lm <- lm(
+  data = slopes.aa.props,
+  formula = MarginalLogNBWMax ~ #DisorderPropensity
+  #+ hydrophobic
+  + Size
+  #+ CostEcoli
+  #+ stickiness
+  + RSA
+  #+ weight
+  #+ pI
+  #+ FreqsEcoli
+  #+ Codon_freqs
+  #+ Diff_freqs
+  ,
+  weights = 1 / (MarginalLogNBWMaxErr^2)
+)
+summary(rsa.lm)
+drop1(rsa.lm, test = "Chisq")
+
+intercept.lm <- lm(
+  data = slopes.aa.props,
+  formula = MarginalLogNBWMax ~ 1
+  ,
+  weights = 1 / (MarginalLogNBWMaxErr^2)
+)
+summary(intercept.lm)
+
+anova(intercept.lm, rsa.lm, test = "LRT")
+anova(intercept.lm, marginals.lm)
 
 # Checking weighted correlations.
 # First, making a function for a weighted Pearson's correlation where both X and Y have their own
@@ -400,20 +451,6 @@ properties.carbons.df
 cor(properties.carbons.df[, -1], method = "pearson")
 cor(properties.carbons.df[, -1], method = "spearman")
 
-# Adding in a variable for highly hydrophobic, where I, L, M, F, and V are considered highly hydrophobic.
-slopes.aa.props$hydrophobic <- ifelse(slopes.aa.props$OneLetter %in% c("I", "L", "M", "F", "V"), 1, 0)
-
-marginals.hydrophobic.lm <- lm(
-  data = slopes.aa.props,
-  formula = MarginalLogNBWMax ~ Size + DisorderPropensity + hydrophobic,
-  weights = 1 / (MarginalLogNBWMaxErr^2)
-)
-summary(marginals.hydrophobic.lm)
-drop1(marginals.hydrophobic.lm, test = "Chisq")
-
-# Adding hydrophobicity does improve the model, barely.
-anova(marginals.lm, marginals.hydrophobic.lm, test = "LRT")
-
 carbons.cor <- custom.weighted.pearson(
   x = slopes.aa.props$MarginalLogNBWMax,
   x.var = slopes.aa.props$MarginalLogNBWMaxErr,
@@ -478,6 +515,38 @@ pI.cor <- custom.weighted.pearson(
 )
 pI.cor
 
+hydrophobicity.cor <- custom.weighted.pearson(
+  x = slopes.aa.props$MarginalLogNBWMax,
+  x.var = slopes.aa.props$MarginalLogNBWMaxErr,
+  y = slopes.aa.props$hydrophobic,
+  y.var = rep(1, 20)
+)
+hydrophobicity.cor
+
+ecoli_freqs.cor <- custom.weighted.pearson(
+  x = slopes.aa.props$MarginalLogNBWMax,
+  x.var = slopes.aa.props$MarginalLogNBWMaxErr,
+  y = slopes.aa.props$FreqsEcoli,
+  y.var = rep(1, 20)
+)
+ecoli_freqs.cor
+
+codon_freqs.cor <- custom.weighted.pearson(
+  x = slopes.aa.props$MarginalLogNBWMax,
+  x.var = slopes.aa.props$MarginalLogNBWMaxErr,
+  y = slopes.aa.props$Codon_freqs,
+  y.var = rep(1, 20)
+)
+codon_freqs.cor
+
+diff_freqs.cor <- custom.weighted.pearson(
+  x = slopes.aa.props$MarginalLogNBWMax,
+  x.var = slopes.aa.props$MarginalLogNBWMaxErr,
+  y = slopes.aa.props$Diff_freqs,
+  y.var = rep(1, 20)
+)
+diff_freqs.cor
+
 # Checking how much the model changes if tryptophan is excluded.
 marginals.noW.lm <- lm(
   data = slopes.aa.props %>% filter(OneLetter != "W"),
@@ -486,6 +555,20 @@ marginals.noW.lm <- lm(
   weights = 1 / (MarginalLogNBWMaxErr^2)
 )
 summary(marginals.noW.lm)
+
+# Including W as a hydrophobic aminoa cid.
+slopes.aa.props <- slopes.aa.props %>% mutate(
+  w_hydrop = if_else(
+    OneLetter == "W", 1, hydrophobic
+  )
+)
+marginals.whydro.lm <- lm(
+  data = slopes.aa.props,
+  formula = MarginalLogNBWMax ~ Size + DisorderPropensity + w_hydrop
+  ,
+  weights = 1 / (MarginalLogNBWMaxErr^2)
+)
+summary(marginals.whydro.lm)
 
 # Checking the mean and median fitness cost from Mehlhoff et al. (2020).
 mehlhoff.data <- read_tsv(file = "Data/MeanMedian_Fitness.txt")
