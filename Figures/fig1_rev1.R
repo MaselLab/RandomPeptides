@@ -14,7 +14,7 @@ getmode <- function(v) {
 todays.date <- Sys.Date()
 
 # Load peptide data.
-peptide.data <- read.table(file = "Scripts/RandomPeptides/Data/supplemental_table_1.tsv", header = T, stringsAsFactors = F)
+peptide.data <- read.table(file = "Scripts/RandomPeptides/Data/supplemental_dataset_1.tsv", header = T, stringsAsFactors = F)
 
 # Calculating disorder propensity.
 source("~/MaselLab/RandomPeptides/Scripts/RandomPeptides/Metrics/aa_comp_metrics.R")

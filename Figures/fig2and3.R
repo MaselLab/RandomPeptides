@@ -7,7 +7,7 @@ library(Hmisc)
 library(Biostrings)
 
 # Load data.
-peptide.data <- read.table(file = "Scripts/RandomPeptides/Data/supplemental_table_1.tsv", header = T, stringsAsFactors = F)
+peptide.data <- read.table(file = "Scripts/RandomPeptides/Data/supplemental_dataset_1.tsv", header = T, stringsAsFactors = F)
 
 # Date of file generation.
 today.date <- Sys.Date()
