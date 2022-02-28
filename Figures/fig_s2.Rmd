@@ -17,13 +17,20 @@ peptide.data <- read.table(file = "../Data/supplemental_dataset_1.tsv", header =
 Grouping by cluster and plotting fitness vs weight.
 
 ```{r}
+peptide.data <- peptide.data %>% mutate(
+  Log_WEIGHT = (FITNESS^2) * WEIGHT
+)
+
 peptide_cluster <- peptide.data %>% group_by(Cluster) %>% summarise(
   Fitness = wtd.mean(FITNESS, weights = WEIGHT),
-  Weight = sum(WEIGHT)
+  Weight = sum(WEIGHT),
+  Log_Weight = sum(Log_WEIGHT)
 )
 
 cor(peptide_cluster$Fitness, peptide_cluster$Weight)
+cor(log(peptide_cluster$Fitness), peptide_cluster$Log_Weight)
 
+# Ordinary weights
 peptide_cluster %>% ggplot(
   data = .,
   aes(
@@ -32,6 +39,19 @@ peptide_cluster %>% ggplot(
   )
 ) + geom_point() + geom_smooth() + theme_bw(base_size = 24)
 
-# Log weights for the updated fitness estimates are missing.
+ggsave(filename = "supplemental_figure_2_A.png", units = "in",
+       width = 5, height = 5)
+
+# Log weights
+peptide_cluster %>% ggplot(
+  data = .,
+  aes(
+    x = log(Fitness),
+    y = Log_Weight
+  )
+) + geom_point() + geom_smooth() + ylab("Weight") + theme_bw(base_size = 24)
+
+ggsave(filename = "supplemental_figure_2_B.png", units = "in",
+       width = 5, height = 5)
 ```
 
