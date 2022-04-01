@@ -205,7 +205,7 @@ hist(peptide.cluster$GC.avg)
 summary(peptide.cluster$GC.avg)
 gc.median <- median(peptide.cluster$GC.avg, na.rm = T)
 
-high.gc.clusters <- peptide.cluster %>% filter(GC.avg > gc.median) %>% select(Cluster)
+high.gc.clusters <- peptide.cluster %>% filter(GC.avg > gc.median)
 
 highgc.aaonly.lm <- lmer(
   data = peptide.data %>% filter(Cluster %in% high.gc.clusters$Cluster),
@@ -314,6 +314,28 @@ lowgc.lm <- lm(
 summary(lowgc.lm)
 drop1(lowgc.lm, test = "Chisq")
 
+# Also checking adjusted R^2 from the fixed effects models.
+fixed.highgc.lm <- lm(
+  data = peptide.cluster %>% filter(Cluster %in% high.gc.clusters$Cluster),
+  formula = FITNESS ~ Leu + Pro + Met + Trp + Ala +
+    Val + Phe + Ile + Gly + Ser +
+    Thr + Cys + Asn + Gln + Tyr +
+    His + Asp + Glu + Lys + Arg,
+  weights = Weight.nb.sum
+)
+summary(fixed.highgc.lm)
+
+fixed.lowgc.lm <- lm(
+  data = peptide.cluster %>% filter(!(Cluster %in% high.gc.clusters$Cluster)),
+  formula = FITNESS ~ Leu + Pro + Met + Trp + Ala +
+    Val + Phe + Ile + Gly + Ser +
+    Thr + Cys + Asn + Gln + Tyr +
+    His + Asp + Glu + Lys + Arg,
+  weights = Weight.nb.sum
+)
+summary(fixed.lowgc.lm)
+
+# Plotting the data.
 gc.cluster %>% ggplot(
   data = .,
   aes(
@@ -331,5 +353,5 @@ gc.cluster %>% ggplot(
   scale_color_manual(values = cbbPalette) +
   theme_bw(base_size = 28)
 
-ggsave(filename = "Scripts/Figures/gc_high_low.png",
+ggsave(filename = paste0("Scripts/Figures/gc_high_low_", Sys.Date(), ".png"),
        units = "in", width = 10, height = 6)
