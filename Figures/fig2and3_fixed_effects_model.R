@@ -12,17 +12,19 @@ peptide.data <- read.table(file = "Scripts/RandomPeptides/Data/supplemental_data
 # Date of file generation.
 today.date <- Sys.Date()
 
+# Combining the data by cluster using the max weight peptide from each cluster.
+cluster_max <- peptide.data %>% group_by(Cluster) %>% filter(WEIGHT == max(WEIGHT))
+
 # Calculating the marginal effects.
 # Amino acid frequency only model.
 peptide.mixed.nb.log.aaonly.lm <-
-  lmer(
-    data = peptide.data,
+  lm(
+    data = cluster_max,
     formula = FITNESS ~
       Leu + Pro + Met + Trp + Ala +
       Val + Phe + Ile + Gly + Ser +
       Thr + Cys + Asn + Gln + Tyr +
       His + Asp + Glu + Lys + Arg +
-      (1|Cluster) +
       0,
     weights = WEIGHT
   )
@@ -117,30 +119,6 @@ custom.contrasts <- function(weight.df, linear.model, aa.col = "AminoAcid", weig
   return(mean.var.df)
 }
 
-# Grouping all data by cluster, and taking the weighted mean of each predicter for each cluster.
-by_cluster <-
-  peptide.data %>% 
-  group_by(Cluster) %>%
-  summarise(Weight.nb.sum = sum(WEIGHT), 
-            ISD.iupred2 = wtd.mean(ISD.iupred2, weights = WEIGHT), FITNESS = wtd.mean(FITNESS, weights = WEIGHT),
-            Leu = wtd.mean(Leu, weights = WEIGHT), Phe = wtd.mean(Phe, weights = WEIGHT),
-            Met = wtd.mean(Met, weights = WEIGHT), Val = wtd.mean(Val, weights = WEIGHT),
-            Ile = wtd.mean(Ile, weights = WEIGHT), Lys = wtd.mean(Lys, weights = WEIGHT),
-            His = wtd.mean(His, weights = WEIGHT), Arg = wtd.mean(Arg, weights = WEIGHT),
-            Glu = wtd.mean(Glu, weights = WEIGHT), Asp = wtd.mean(Asp, weights = WEIGHT),
-            Gln = wtd.mean(Gln, weights = WEIGHT), Asn = wtd.mean(Asn, weights = WEIGHT),
-            Gly = wtd.mean(Gly, weights = WEIGHT), Ala = wtd.mean(Ala, weights = WEIGHT),
-            Pro = wtd.mean(Pro, weights = WEIGHT), Ser = wtd.mean(Ser, weights = WEIGHT),
-            Trp = wtd.mean(Trp, weights = WEIGHT), Tyr = wtd.mean(Tyr, weights = WEIGHT),
-            Thr = wtd.mean(Thr, weights = WEIGHT), Cys = wtd.mean(Cys, weights = WEIGHT),
-            Clustering.Six = wtd.mean(Clustering.Six, weights = WEIGHT),
-            TangoAAsInAPRs = wtd.mean(TangoAAsInAPRs, weights = WEIGHT),
-            CamSol.avg = wtd.mean(CamSol.avg, weights = WEIGHT),
-            ISD.delta = wtd.mean(ISD.delta, weights = WEIGHT),
-            net.charge = wtd.mean(net.charge, weights = WEIGHT),
-            Trp.unweighted = mean(Trp), Arg.unweighted = mean(Arg)
-  )
-
 # Calculating frequency from cluster.
 aa.freqs.wmax <-
   tibble(
@@ -154,16 +132,16 @@ aa.freqs.wmax <-
                     "Trp", "Val",
                     "Leu", "Met",
                     "Phe", "Ile"),
-    "Count" = c("Lys" = sum(by_cluster$Lys), "Arg" = sum(by_cluster$Arg),
-                "Asp" = sum(by_cluster$Asp), "Glu" = sum(by_cluster$Glu),
-                "Gln" = sum(by_cluster$Gln), "Ser" = sum(by_cluster$Ser),
-                "Asn" = sum(by_cluster$Asn), "Thr" = sum(by_cluster$Thr),
-                "Pro" = sum(by_cluster$Pro), "Tyr" = sum(by_cluster$Tyr),
-                "His" = sum(by_cluster$His), "Cys" = sum(by_cluster$Cys),
-                "Gly" = sum(by_cluster$Gly), "Ala" = sum(by_cluster$Ala),
-                "Trp" = sum(by_cluster$Trp), "Val" = sum(by_cluster$Val),
-                "Leu" = sum(by_cluster$Leu), "Met" = sum(by_cluster$Met),
-                "Phe" = sum(by_cluster$Phe), "Ile" = sum(by_cluster$Ile))
+    "Count" = c("Lys" = sum(cluster_max$Lys), "Arg" = sum(cluster_max$Arg),
+                "Asp" = sum(cluster_max$Asp), "Glu" = sum(cluster_max$Glu),
+                "Gln" = sum(cluster_max$Gln), "Ser" = sum(cluster_max$Ser),
+                "Asn" = sum(cluster_max$Asn), "Thr" = sum(cluster_max$Thr),
+                "Pro" = sum(cluster_max$Pro), "Tyr" = sum(cluster_max$Tyr),
+                "His" = sum(cluster_max$His), "Cys" = sum(cluster_max$Cys),
+                "Gly" = sum(cluster_max$Gly), "Ala" = sum(cluster_max$Ala),
+                "Trp" = sum(cluster_max$Trp), "Val" = sum(cluster_max$Val),
+                "Leu" = sum(cluster_max$Leu), "Met" = sum(cluster_max$Met),
+                "Phe" = sum(cluster_max$Phe), "Ile" = sum(cluster_max$Ile))
   )
 aa.freqs.wmax
 
@@ -347,8 +325,8 @@ drop1(marginals.lm, test = "Chisq")
 rsa.lm <- lm(
   data = slopes.aa.props,
   formula = MarginalLogNBWMax ~ #DisorderPropensity
-    #+ hydrophobic
-    + Size
+  #+ hydrophobic
+  + Size
   #+ CostEcoli
   #+ stickiness
   + RSA
@@ -372,7 +350,7 @@ intercept.lm <- lm(
 summary(intercept.lm)
 
 anova(intercept.lm, rsa.lm, test = "LRT")
-anova(intercept.lm, marginals.lm)
+anova(intercept.lm, marginals.lm, test = "LRT")
 
 # Checking weighted correlations.
 # First, making a function for a weighted Pearson's correlation where both X and Y have their own
@@ -710,7 +688,7 @@ png(filename = Size.name, width = 600, height = 600)
 ggplot(data = slopes.aa.props, aes(y = MarginalLogNBWMax, x = Size)) +
   geom_point(size = 4) +
   geom_errorbar(aes(ymin=MarginalLogNBWMax - MarginalLogNBWMaxErr,
-                    ymax=MarginalLogNBWMax + MarginalLogNBWMaxErr), size = 1) +
+                     ymax=MarginalLogNBWMax + MarginalLogNBWMaxErr), size = 1) +
   xlab(paste("Volume ", "(", "\uc5\u00b3", ")", sep = "")) +
   ylab("Effect on genotype freq / cycle") +
   #scale_x_continuous(breaks = c(-0.2, -0.1, 0, 0.1),
@@ -732,7 +710,7 @@ ggplot(data = slopes.aa.props, aes(y = MarginalLogNBWMax, x = CostEcoli)) +
   #                  ymax=AncientPfamSlope + AncientPfamError),
   #              size = 1) +
   geom_errorbar(aes(ymin=MarginalLogNBWMax - MarginalLogNBWMaxErr,
-                    ymax=MarginalLogNBWMax + MarginalLogNBWMaxErr), size = 1) +
+                     ymax=MarginalLogNBWMax + MarginalLogNBWMaxErr), size = 1) +
   xlab("Amino acid cost in E. coli") +
   ylab("Effect on genotype freq / cycle") +
   #scale_x_continuous(breaks = c(-0.2, -0.1, 0, 0.1),
@@ -754,7 +732,7 @@ ggplot(data = slopes.aa.props, aes(y = MarginalLogNBWMax, x = DisorderPropensity
   #                  ymax=AncientPfamSlope + AncientPfamError),
   #              size = 1) +
   geom_errorbar(aes(ymin=MarginalLogNBWMax - MarginalLogNBWMaxErr,
-                    ymax=MarginalLogNBWMax + MarginalLogNBWMaxErr), size = 1) +
+                     ymax=MarginalLogNBWMax + MarginalLogNBWMaxErr), size = 1) +
   xlab("Disorder propensity") +
   ylab("Effect on genotype freq / cycle") +
   #scale_x_continuous(breaks = c(-0.2, -0.1, 0, 0.1),
@@ -777,5 +755,6 @@ ggplot(data = slopes.aa.props, aes(y = MarginalLogNBWMax, x = (1 - MeanFit))) +
   ylab("Effect on genotype freq / cycle") +
   geom_text(aes(label = OneLetter), hjust = -0.2, vjust = -0.4, size = 9, color = "grey30") +
   annotate("text", label = mehlhoff.mean.cor.label, y = -0.07, x = 0.055, size = 10,
-           parse = F) +
+          parse = F) +
   theme_bw(base_size = 28)
+

@@ -39,7 +39,8 @@ peptide_cluster %>% ggplot(
   )
 ) + geom_point() + geom_smooth() + theme_bw(base_size = 24)
 
-ggsave(filename = "supplemental_figure_2_A.png", units = "in",
+ggsave(filename = paste0("../../Figures/supplemental_figure_2_A_", Sys.Date(), ".png"),
+       units = "in",
        width = 5, height = 5)
 
 # Log weights
@@ -51,7 +52,8 @@ peptide_cluster %>% ggplot(
   )
 ) + geom_point() + geom_smooth() + ylab("Weight") + theme_bw(base_size = 24)
 
-ggsave(filename = "supplemental_figure_2_B.png", units = "in",
+ggsave(filename = paste0("../../Figures/supplemental_figure_2_B_", Sys.Date(), ".png"),
+       units = "in",
        width = 5, height = 5)
 ```
 

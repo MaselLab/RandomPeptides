@@ -6,7 +6,7 @@ library(stringr)
 library(Hmisc)
 
 # Load peptide data.
-peptide.data <- read.table(file = "Scripts/RandomPeptides/Data/supplemental_table_1.tsv", header = T, stringsAsFactors = F)
+peptide.data <- read.table(file = "Scripts/RandomPeptides/Data/supplemental_dataset_1.tsv", header = T, stringsAsFactors = F)
 peptide.data
 
 # Building the model.
@@ -101,8 +101,11 @@ peptide.mixed.other.predictors.nb.lm <- lmer(
     #WaltzBinary +
     #net.charge +
     #GC.avg +
+    #charge.pos +
+    #charge.neg +
     (1|Cluster) +
-    0,
+    0
+  ,
   weights = WEIGHT
 )
 summary(peptide.mixed.other.predictors.nb.lm)

@@ -90,6 +90,20 @@ FITNESS.aa.lm <- lmer(data = peptide.data,
                          weights = WEIGHT)
 drop1(FITNESS.aa.lm, test = "Chisq")
 
+# Checking whether delta ISD improves the model.
+delta.isd.lme <- 
+  lmer(
+    data = peptide.data,
+    formula = FITNESS ~ 
+      Leu + Pro + Met + Trp + Ala +
+      Val + Phe + Ile + Gly + Ser +
+      Thr + Cys + Asn + Gln + Tyr +
+      His + Asp + Glu + Lys + Arg +
+      ISD.delta + (1|Cluster) + 0,
+    weights = WEIGHT
+  )
+drop1(delta.isd.lme, test = "Chisq")
+
 # Calculating predicted fitness each model.
 peptide.data$ISD.fit <- predict(isd.lme,
                                 newdata = peptide.data,
@@ -174,31 +188,31 @@ by_cluster <-
 # And now for the R-squared.
 isd.fit.lm <- lm(
   data = by_cluster,
-  formula = FITNESS ~ sqrt(ISD.iupred2),
+  formula = FITNESS ~ ISD.fit,
   weights = Weight.nb.sum
 )
 summary(isd.fit.lm)
 clustering.fit.lm <- lm(
   data = by_cluster,
-  formula = FITNESS ~ Clustering.Six,
+  formula = FITNESS ~ Clustering.fit,
   weights = Weight.nb.sum
 )
 summary(clustering.fit.lm)
 CamSol.fit.lm <- lm(
   data = by_cluster,
-  formula = FITNESS ~ CamSol.avg,
+  formula = FITNESS ~ CamSol.fit,
   weights = Weight.nb.sum
 )
 summary(CamSol.fit.lm)
 Tango.fit.lm <- lm(
   data = by_cluster,
-  formula = FITNESS ~ TangoAAsInAPRs,
+  formula = FITNESS ~ Tango.fit,
   weights = Weight.nb.sum
 )
 summary(Tango.fit.lm)
 disorder.fit.lm <- lm(
   data = by_cluster,
-  formula = FITNESS ~ disorder,
+  formula = FITNESS ~ disorder.fit,
   weights = Weight.nb.sum
 )
 summary(disorder.fit.lm)
@@ -301,7 +315,7 @@ mapply(ggsave,
        height = 7, width = 7, units = "in", dpi = 300)
 
 
-fit.zoomout.plots <- lapply(fit.list, fit.plotting, y.limit = c(0, 5.3))
+fit.zoomout.plots <- lapply(fit.list, fit.plotting, y.limit = c(0, 5.4))
 
 names(fit.zoomout.plots) <- c("ISD", "CamSol", "Tango", "Disorder", "AA", "Clustering")
 

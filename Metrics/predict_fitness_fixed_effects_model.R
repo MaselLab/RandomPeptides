@@ -79,10 +79,10 @@ fitness.calculator <- function(aa.sequence, non.standard = "continue"){
   #   0.8635*T.freq - 1.7250*C.freq - 3.2173*N.freq + 0.1350*Q.freq - 4.0855*Y.freq -
   #   4.4536*H.freq + 2.2677*D.freq - 1.9224*E.freq - 4.1495*K.freq - 1.7283*R.freq
   # Untransformed fitness model.
-  fitness.ln <- - 0.1902*L.freq + 2.2455*P.freq - 0.8988*M.freq + 1.0943*W.freq + 2.2724*A.freq -
-    0.2368*V.freq - 1.0793*F.freq - 2.9320*I.freq + 1.4199*G.freq + 1.9215*S.freq +
-    0.5261*T.freq + 0.3983*C.freq - 0.4689*N.freq + 1.6551*Q.freq - 0.4031*Y.freq -
-    0.9684*H.freq + 1.5434*D.freq - 0.1384*E.freq - 0.3008*K.freq + 0.1681*R.freq
+  fitness.ln <- - 0.3703*L.freq + 2.9803*P.freq - 1.3868*M.freq + 1.8869*W.freq + 3.2314*A.freq -
+    0.7650*V.freq - 0.6700*F.freq - 3.7534*I.freq + 1.9088*G.freq + 2.1824*S.freq +
+    0.3213*T.freq + 0.5560*C.freq - 2.4857*N.freq + 2.2325*Q.freq - 1.9062*Y.freq -
+    2.2881*H.freq + 3.3342*D.freq - 1.1222*E.freq + 0.3742*K.freq + 0.3866*R.freq
   # Fixed-effects only log2 fitness transformed.
   # fitness.ln <- - 0.44510*L.freq + 0.65312*P.freq - 3.21922*M.freq + 2.07656*W.freq + 0.67450*A.freq -
   #   0.74113*V.freq + 0.83128*F.freq + 0.63621*I.freq - 0.09014*G.freq + 2.93294*S.freq -
