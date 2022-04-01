@@ -188,31 +188,31 @@ by_cluster <-
 # And now for the R-squared.
 isd.fit.lm <- lm(
   data = by_cluster,
-  formula = FITNESS ~ ISD.fit,
+  formula = FITNESS ~ sqrt(ISD.iupred2),
   weights = Weight.nb.sum
 )
 summary(isd.fit.lm)
 clustering.fit.lm <- lm(
   data = by_cluster,
-  formula = FITNESS ~ Clustering.fit,
+  formula = FITNESS ~ Clustering.Six,
   weights = Weight.nb.sum
 )
 summary(clustering.fit.lm)
 CamSol.fit.lm <- lm(
   data = by_cluster,
-  formula = FITNESS ~ CamSol.fit,
+  formula = FITNESS ~ CamSol.avg,
   weights = Weight.nb.sum
 )
 summary(CamSol.fit.lm)
 Tango.fit.lm <- lm(
   data = by_cluster,
-  formula = FITNESS ~ Tango.fit,
+  formula = FITNESS ~ TangoAAsInAPRs,
   weights = Weight.nb.sum
 )
 summary(Tango.fit.lm)
 disorder.fit.lm <- lm(
   data = by_cluster,
-  formula = FITNESS ~ disorder.fit,
+  formula = FITNESS ~ disorder,
   weights = Weight.nb.sum
 )
 summary(disorder.fit.lm)
@@ -220,6 +220,16 @@ fit.aa.lm <- lm(data = by_cluster,
                 formula = FITNESS ~ AA.fit,
                 weights = Weight.nb.sum)
 summary(fit.aa.lm)
+
+# The above thinks there is only one predictor, when there are 19 (although they are not truly independent).
+# Checking a fixed effects model of AA frequencies.
+fixed.aa.lm <- lm(data = by_cluster,
+                formula = FITNESS ~ Leu + Pro + Met + Trp + Ala +
+                  Val + Phe + Ile + Gly + Ser +
+                  Thr + Cys + Asn + Gln + Tyr +
+                  His + Asp + Glu + Lys,
+                weights = Weight.nb.sum)
+summary(fixed.aa.lm) # We get about the same adjusted R^2.
 
 delta.isd.lm <- lm(
   data = by_cluster,
